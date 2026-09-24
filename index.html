@@ -138,5 +138,23 @@
 
 </div>
 
+<script>
+  const searchInput = document.querySelector('input');
+
+  searchInput.addEventListener('input', function() {
+    const search = this.value.toLowerCase();
+    const products = document.querySelectorAll('.product');
+
+    products.forEach(function(product) {
+      const name = product.querySelector('h3').textContent.toLowerCase();
+
+      if (name.includes(search)) {
+        product.style.display = 'block';
+      } else {
+        product.style.display = 'none';
+      }
+    });
+  });
+</script>
 </body>
 </html>
