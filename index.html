@@ -232,37 +232,37 @@ function closeAddProduct() {
   <script>
 function saveNewProduct() {
 
-  const name = document.getElementById("newName").value;
-  const category = document.getElementById("newCategory").value;
-  const barcode = document.getElementById("newBarcode").value;
-  const stock = document.getElementById("newStock").value || 0;
-  const tester = document.getElementById("newTester").value || 0;
-  const samples = document.getElementById("newSamples").value || 0;
-  const location = document.getElementById("newLocation").value;
+  var name = document.getElementById("newName").value;
+  var category = document.getElementById("newCategory").value;
+  var barcode = document.getElementById("newBarcode").value;
+  var stock = document.getElementById("newStock").value || "0";
+  var tester = document.getElementById("newTester").value || "0";
+  var samples = document.getElementById("newSamples").value || "0";
+  var location = document.getElementById("newLocation").value || "Not specified";
 
-  if (!name) {
+  if (name === "") {
     alert("Please enter a product name.");
     return;
   }
 
-  const product = document.createElement("div");
+  var product = document.createElement("div");
+
   product.className = "product";
 
-  product.innerHTML = `
-    <h3>${name}</h3>
-    <p class="small">${category}</p>
-    <p>Barcode: ${barcode || "None"}</p>
-    <p>Live Stock: ${stock}</p>
-    <p>Testers: ${tester}</p>
-    <p>Samples: ${samples}</p>
-    <p>Location: ${location || "Not specified"}</p>
-    <p class="small">Last checked: Today</p>
-    <button>Update Count</button>
-  `;
+  product.innerHTML =
+    "<h3>" + name + "</h3>" +
+    "<p class='small'>" + category + "</p>" +
+    "<p>Barcode: " + (barcode || "None") + "</p>" +
+    "<p>Live Stock: " + stock + "</p>" +
+    "<p>Testers: " + tester + "</p>" +
+    "<p>Samples: " + samples + "</p>" +
+    "<p>Location: " + location + "</p>" +
+    "<p class='small'>Last checked: Today</p>" +
+    "<button>Update Count</button>";
 
   document.querySelector(".container").appendChild(product);
 
-  document.getElementById("addProductForm").style.display = "none";
+  closeAddProduct();
 
   document.getElementById("newName").value = "";
   document.getElementById("newBarcode").value = "";
@@ -271,7 +271,11 @@ function saveNewProduct() {
   document.getElementById("newSamples").value = "";
   document.getElementById("newLocation").value = "";
 
+  alert("Product added!");
+
 }
+</script>
+ 
 </script>
 </body>
 </html>
