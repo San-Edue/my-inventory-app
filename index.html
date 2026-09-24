@@ -229,38 +229,31 @@ function closeAddProduct() {
   document.getElementById("addProductForm").style.display = "none";
 }
 </script>
-  <script>
+<script>
 function saveNewProduct() {
 
-  var name = document.getElementById("newName").value;
-  var category = document.getElementById("newCategory").value;
-  var barcode = document.getElementById("newBarcode").value;
-  var stock = document.getElementById("newStock").value || "0";
-  var tester = document.getElementById("newTester").value || "0";
-  var samples = document.getElementById("newSamples").value || "0";
-  var location = document.getElementById("newLocation").value || "Not specified";
+  var product = {
+    name: document.getElementById("newName").value,
+    category: document.getElementById("newCategory").value,
+    barcode: document.getElementById("newBarcode").value,
+    stock: document.getElementById("newStock").value || "0",
+    tester: document.getElementById("newTester").value || "0",
+    samples: document.getElementById("newSamples").value || "0",
+    location: document.getElementById("newLocation").value || "Not specified"
+  };
 
-  if (name === "") {
+  if (product.name === "") {
     alert("Please enter a product name.");
     return;
   }
 
-  var product = document.createElement("div");
+  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
-  product.className = "product";
+  products.push(product);
 
-  product.innerHTML =
-    "<h3>" + name + "</h3>" +
-    "<p class='small'>" + category + "</p>" +
-    "<p>Barcode: " + (barcode || "None") + "</p>" +
-    "<p>Live Stock: " + stock + "</p>" +
-    "<p>Testers: " + tester + "</p>" +
-    "<p>Samples: " + samples + "</p>" +
-    "<p>Location: " + location + "</p>" +
-    "<p class='small'>Last checked: Today</p>" +
-    "<button>Update Count</button>";
+  localStorage.setItem("inventoryProducts", JSON.stringify(products));
 
-  document.querySelector(".container").appendChild(product);
+  addProductToPage(product);
 
   closeAddProduct();
 
@@ -274,8 +267,41 @@ function saveNewProduct() {
   alert("Product added!");
 
 }
+
+function addProductToPage(product) {
+
+  var productDiv = document.createElement("div");
+
+  productDiv.className = "product";
+
+  productDiv.innerHTML =
+    "<h3>" + product.name + "</h3>" +
+    "<p class='small'>" + product.category + "</p>" +
+    "<p>Barcode: " + (product.barcode || "None") + "</p>" +
+    "<p>Live Stock: " + product.stock + "</p>" +
+    "<p>Testers: " + product.tester + "</p>" +
+    "<p>Samples: " + product.samples + "</p>" +
+    "<p>Location: " + product.location + "</p>" +
+    "<p class='small'>Last checked: Today</p>" +
+    "<button>Update Count</button>";
+
+  document.querySelector(".container").appendChild(productDiv);
+
+}
+
 </script>
- 
+  <script>
+window.addEventListener("load", function() {
+
+  var savedProducts =
+    JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
+  savedProducts.forEach(function(product) {
+    addProductToPage(product);
+  });
+
+});
 </script>
+  
 </body>
 </html>
