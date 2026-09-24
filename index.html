@@ -167,5 +167,42 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+  const categoryButtons = document.querySelectorAll(".categories button");
+  const products = document.querySelectorAll(".product");
+  const searchInput = document.querySelector('input[placeholder="Search products..."]');
+
+  categoryButtons.forEach(function(button) {
+
+    button.addEventListener("click", function() {
+
+      const category = button.textContent.toLowerCase();
+      const searchText = searchInput.value.toLowerCase();
+
+      products.forEach(function(product) {
+
+        const productName = product.querySelector("h3").textContent.toLowerCase();
+        const productCategory = product.querySelector(".small").textContent.toLowerCase();
+
+        const matchesSearch = productName.includes(searchText);
+        const matchesCategory =
+          category === "all" || productCategory === category;
+
+        if (matchesSearch && matchesCategory) {
+          product.style.display = "block";
+        } else {
+          product.style.display = "none";
+        }
+
+      });
+
+    });
+
+  });
+
+});
+</script>
 </body>
 </html>
