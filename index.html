@@ -229,5 +229,49 @@ function closeAddProduct() {
   document.getElementById("addProductForm").style.display = "none";
 }
 </script>
+  <script>
+function saveNewProduct() {
+
+  const name = document.getElementById("newName").value;
+  const category = document.getElementById("newCategory").value;
+  const barcode = document.getElementById("newBarcode").value;
+  const stock = document.getElementById("newStock").value || 0;
+  const tester = document.getElementById("newTester").value || 0;
+  const samples = document.getElementById("newSamples").value || 0;
+  const location = document.getElementById("newLocation").value;
+
+  if (!name) {
+    alert("Please enter a product name.");
+    return;
+  }
+
+  const product = document.createElement("div");
+  product.className = "product";
+
+  product.innerHTML = `
+    <h3>${name}</h3>
+    <p class="small">${category}</p>
+    <p>Barcode: ${barcode || "None"}</p>
+    <p>Live Stock: ${stock}</p>
+    <p>Testers: ${tester}</p>
+    <p>Samples: ${samples}</p>
+    <p>Location: ${location || "Not specified"}</p>
+    <p class="small">Last checked: Today</p>
+    <button>Update Count</button>
+  `;
+
+  document.querySelector(".container").appendChild(product);
+
+  document.getElementById("addProductForm").style.display = "none";
+
+  document.getElementById("newName").value = "";
+  document.getElementById("newBarcode").value = "";
+  document.getElementById("newStock").value = "";
+  document.getElementById("newTester").value = "";
+  document.getElementById("newSamples").value = "";
+  document.getElementById("newLocation").value = "";
+
+}
+</script>
 </body>
 </html>
