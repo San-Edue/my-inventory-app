@@ -387,9 +387,26 @@ function saveUpdate() {
 
   });
 
-  closeUpdate();
+  var name = currentProduct.querySelector("h3").textContent.trim();
 
-  alert("Count updated!");
+var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
+var index = products.findIndex(function(product) {
+  return product.name === name;
+});
+
+if (index !== -1) {
+  products[index].stock = newStock;
+  products[index].tester = newTester;
+  products[index].samples = newSamples;
+  products[index].location = newLocation;
+
+  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+}
+
+closeUpdate();
+
+alert("Count updated!");
 }
 function closeUpdate() {
   document.getElementById("updateForm").style.display = "none";
