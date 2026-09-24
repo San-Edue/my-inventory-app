@@ -424,6 +424,20 @@ function closeUpdate() {
     return;
   }
 
+  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
+  products = products.filter(function(product) {
+    return product.name !== name;
+  });
+
+  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+
+  currentProduct.remove();
+
+  closeUpdate();
+
+  alert("Product deleted.");
+}
   currentProduct.remove();
 
   closeUpdate();
