@@ -411,23 +411,18 @@ alert("Count updated!");
 function closeUpdate() {
   document.getElementById("updateForm").style.display = "none";
 }
-    function deleteProduct() {
+   function deleteProduct() {
 
-  if (!currentProduct) return;
+  if (!currentProduct) {
+    alert("No product selected.");
+    return;
+  }
 
   var name = currentProduct.querySelector("h3").textContent.trim();
 
-  var confirmed = confirm("Are you sure you want to delete " + name + "?");
-
-  if (!confirmed) return;
-
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
-
-  products = products.filter(function(product) {
-    return product.name !== name;
-  });
-
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  if (!confirm("Are you sure you want to delete " + name + "?")) {
+    return;
+  }
 
   currentProduct.remove();
 
@@ -435,6 +430,7 @@ function closeUpdate() {
 
   alert("Product deleted.");
 }
+
 </script>
 </body>
 </html>
