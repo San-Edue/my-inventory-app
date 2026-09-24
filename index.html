@@ -323,6 +323,8 @@ window.addEventListener("load", function() {
   <script>
 var currentProduct = null;
 
+var currentProduct = null;
+
 function getProductValue(product, label) {
   var paragraphs = product.querySelectorAll("p");
 
@@ -335,6 +337,109 @@ function getProductValue(product, label) {
   }
 
   return "";
+}
+
+function openUpdate(product) {
+
+  currentProduct = product;
+
+  document.getElementById("updateStock").value =
+    getProductValue(product, "Live Stock:");
+
+  document.getElementById("updateTester").value =
+    getProductValue(product, "Testers:");
+
+  document.getElementById("updateSamples").value =
+    getProductValue(product, "Samples:");
+
+  document.getElementById("updateLocation").value =
+    getProductValue(product, "Location:");
+
+  document.getElementById("updateForm").style.display = "block";
+}
+
+function saveUpdate() {
+
+  if (!currentProduct) return;
+
+  var newStock = document.getElementById("updateStock").value || "0";
+  var newTester = document.getElementById("updateTester").value || "0";
+  var newSamples = document.getElementById("updateSamples").value || "0";
+  var newLocation = document.getElementById("updateLocation").value || "Not specified";
+
+  var paragraphs = currentProduct.querySelectorAll("p");
+
+  paragraphs.forEach(function(p) {
+
+    var text = p.textContent.trim();
+
+    if (text.startsWith("Live Stock:")) {
+      p.textContent = "Live Stock: " + newStock;
+    }
+
+    if (text.startsWith("Testers:")) {
+      p.textContent = "Testers: " + newTester;
+    }
+
+    if (text.startsWith("Samples:")) {
+      p.textContent = "Samples: " + newSamples;
+    }
+
+    if (text.startsWith("Location:")) {
+      p.textContent = "Location: " + newLocation;
+    }
+
+  });
+
+  var name = currentProduct.querySelector("h3").textContent.trim();
+
+  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
+  var index = products.findIndex(function(product) {
+    return product.name === name;
+  });
+
+  if (index !== -1) {
+    products[index].stock = newStock;
+    products[index].tester = newTester;
+    products[index].samples = newSamples;
+    products[index].location = newLocation;
+
+    localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  }
+
+  closeUpdate();
+
+  alert("Count updated!");
+}
+
+function deleteProduct() {
+
+  if (!currentProduct) return;
+
+  var name = currentProduct.querySelector("h3").textContent.trim();
+
+  if (!confirm("Are you sure you want to delete " + name + "?")) {
+    return;
+  }
+
+  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
+
+  products = products.filter(function(product) {
+    return product.name !== name;
+  });
+
+  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+
+  currentProduct.remove();
+
+  closeUpdate();
+
+  alert("Product deleted.");
+}
+
+function closeUpdate() {
+  document.getElementById("updateForm").style.display = "none";
 }
 
 function openUpdate(product) {
