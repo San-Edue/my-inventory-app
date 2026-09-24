@@ -283,7 +283,7 @@ function addProductToPage(product) {
     "<p>Samples: " + product.samples + "</p>" +
     "<p>Location: " + product.location + "</p>" +
     "<p class='small'>Last checked: Today</p>" +
-    "<button>Update Count</button>";
+    "<button onclick='openUpdate(this.parentElement)'>Update Count</button>";
 
   document.querySelector(".container").appendChild(productDiv);
 
