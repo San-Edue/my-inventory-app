@@ -111,7 +111,7 @@
     <p>Samples: 5</p>
     <p>Location: Shelf A1</p>
     <p class="small">Last checked: Today</p>
-    <button>Update Count</button>
+    <button onclick="openUpdate(this.parentElement)">Update Count</button>
   </div>
 
   <div class="product">
@@ -302,6 +302,42 @@ window.addEventListener("load", function() {
 
 });
 </script>
-  
+
+  <div id="updateForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-top:20px;">
+
+  <h2>Update Count</h2>
+
+  <input id="updateStock" type="number" placeholder="Live stock">
+
+  <input id="updateTester" type="number" placeholder="Testers">
+
+  <input id="updateSamples" type="number" placeholder="Samples">
+
+  <input id="updateLocation" type="text" placeholder="Location">
+
+  <button onclick="saveUpdate()">Save Changes</button>
+
+  <button onclick="closeUpdate()">Cancel</button>
+
+</div>
+  <script>
+var currentProduct = null;
+
+function openUpdate(product) {
+
+  currentProduct = product;
+
+  document.getElementById("updateStock").value = product.querySelector("p:nth-of-type(2)").textContent.replace("Live Stock: ", "");
+  document.getElementById("updateTester").value = product.querySelector("p:nth-of-type(3)").textContent.replace("Testers: ", "");
+  document.getElementById("updateSamples").value = product.querySelector("p:nth-of-type(4)").textContent.replace("Samples: ", "");
+  document.getElementById("updateLocation").value = product.querySelector("p:nth-of-type(5)").textContent.replace("Location: ", "");
+
+  document.getElementById("updateForm").style.display = "block";
+}
+
+function closeUpdate() {
+  document.getElementById("updateForm").style.display = "none";
+}
+</script>
 </body>
 </html>
