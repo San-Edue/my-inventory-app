@@ -94,7 +94,7 @@
 
   <button>Scan Barcode</button>
 
-  <button>Add Product</button>
+  <button onclick="showAddProduct()">Add Product</button>
 
   <div class="categories">
     <button>All</button>
@@ -192,6 +192,42 @@ categoryButtons.forEach(function(button) {
   });
 
 });
+</script>
+  <div id="addProductForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-top:20px;">
+
+  <h2>Add Product</h2>
+
+  <input id="newName" type="text" placeholder="Product name">
+
+  <select id="newCategory">
+    <option value="Skincare">Skincare</option>
+    <option value="Makeup">Makeup</option>
+    <option value="Haircare">Haircare</option>
+  </select>
+
+  <input id="newBarcode" type="text" placeholder="Barcode (optional)">
+
+  <input id="newStock" type="number" placeholder="Live stock">
+
+  <input id="newTester" type="number" placeholder="Testers">
+
+  <input id="newSamples" type="number" placeholder="Samples">
+
+  <input id="newLocation" type="text" placeholder="Location">
+
+  <button onclick="saveNewProduct()">Save Product</button>
+
+  <button onclick="closeAddProduct()">Cancel</button>
+
+</div>
+  <script>
+function showAddProduct() {
+  document.getElementById("addProductForm").style.display = "block";
+}
+
+function closeAddProduct() {
+  document.getElementById("addProductForm").style.display = "none";
+}
 </script>
 </body>
 </html>
