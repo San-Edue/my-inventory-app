@@ -426,8 +426,8 @@ function closeUpdate() {
 
   var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
- products = products.filter(function(product) {
-  return product.name.trim() !== name.trim();
+products = products.filter(function(product) {
+  return product.name !== name;
 });
 
   localStorage.setItem("inventoryProducts", JSON.stringify(products));
