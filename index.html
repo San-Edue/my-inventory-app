@@ -117,11 +117,18 @@
       margin-bottom: 12px;
     }
 
+    #reader video {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 10px;
+    }
+
     #scannerStatus {
       text-align: center;
       color: #777;
       font-size: 14px;
       margin-bottom: 12px;
+      min-height: 20px;
     }
 
     #closeScannerButton {
@@ -161,9 +168,7 @@
 
   <!-- BARCODE SCANNER -->
 
-  <div
-    id="scannerContainer"
-  >
+  <div id="scannerContainer">
 
     <h2>Scan Barcode</h2>
 
@@ -338,7 +343,7 @@
   var currentCategory = "All";
 
   /*
-    BARCODE SCANNER VARIABLE
+    BARCODE SCANNER VARIABLES
   */
 
   var barcodeScanner = null;
@@ -348,8 +353,6 @@
 
   /*
     INITIAL PRODUCTS
-
-    These are only used if there is no saved inventory yet.
   */
 
   var defaultProducts = [
@@ -960,13 +963,53 @@
       "Starting camera...";
 
 
+    /*
+      Clear anything left over from
+      a previous scan.
+    */
+
+    document
+      .getElementById("reader")
+      .innerHTML = "";
+
+
     barcodeScanner =
       new Html5Qrcode("reader");
 
 
+    /*
+      Barcode formats commonly used
+      on retail products.
+    */
+
+    var formats = [
+
+      Html5QrcodeSupportedFormats.UPC_A,
+
+      Html5QrcodeSupportedFormats.UPC_E,
+
+      Html5QrcodeSupportedFormats.EAN_13,
+
+      Html5QrcodeSupportedFormats.EAN_8,
+
+      Html5QrcodeSupportedFormats.CODE_128,
+
+      Html5QrcodeSupportedFormats.CODE_39,
+
+      Html5QrcodeSupportedFormats.ITF,
+
+      Html5QrcodeSupportedFormats.CODABAR
+
+    ];
+
+
     var scannerConfig = {
 
-      fps: 10,
+      fps: 15,
+
+      /*
+        Make the scanning area large.
+      */
 
       qrbox: function(
         viewfinderWidth,
@@ -975,20 +1018,13 @@
 
         var width =
           Math.floor(
-            viewfinderWidth * 0.85
+            viewfinderWidth * 0.90
           );
 
-        var height = 120;
-
-
-        if (height > viewfinderHeight * 0.5) {
-
-          height =
-            Math.floor(
-              viewfinderHeight * 0.5
-            );
-
-        }
+        var height =
+          Math.floor(
+            viewfinderHeight * 0.35
+          );
 
 
         return {
@@ -1000,21 +1036,11 @@
 
       aspectRatio: 1.7777778,
 
-      formatsToSupport: [
+      formatsToSupport: formats,
 
-        Html5QrcodeSupportedFormats.UPC_A,
-
-        Html5QrcodeSupportedFormats.UPC_E,
-
-        Html5QrcodeSupportedFormats.EAN_13,
-
-        Html5QrcodeSupportedFormats.EAN_8,
-
-        Html5QrcodeSupportedFormats.CODE_128,
-
-        Html5QrcodeSupportedFormats.CODE_39
-
-      ]
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      }
 
     };
 
@@ -1023,20 +1049,27 @@
       .start(
 
         {
-          facingMode: "environment"
+          facingMode: {
+            exact: "environment"
+          }
         },
 
         scannerConfig,
 
-        onBarcodeScanned,
+        function(decodedText, decodedResult) {
+
+          onBarcodeScanned(decodedText);
+
+        },
 
         function(errorMessage) {
 
           /*
-            Normal scan failures happen constantly
-            while searching for a barcode.
+            The scanner continuously reports
+            failed scan attempts while searching.
 
-            We intentionally do nothing here.
+            This is normal, so we don't show
+            an error for every failed frame.
           */
 
         }
@@ -1046,24 +1079,31 @@
 
         barcodeScannerRunning = true;
 
+
         document
           .getElementById("scannerStatus")
           .textContent =
-          "Point your camera at a product barcode.";
+          "Move the barcode into the box. Keep it flat and well lit.";
 
       })
       .catch(function(error) {
 
-        console.error(error);
+        console.error(
+          "Barcode scanner error:",
+          error
+        );
+
 
         document
           .getElementById("scannerStatus")
           .textContent =
-          "Could not start the camera.";
+          "Camera could not start.";
+
 
         alert(
-          "The camera could not be started. Make sure you gave the browser camera permission and that the website is using HTTPS."
+          "The camera could not be started. Please make sure your browser has camera permission."
         );
+
 
         closeBarcodeScanner();
 
@@ -1083,11 +1123,16 @@
     }
 
 
+    if (!decodedText) {
+      return;
+    }
+
+
     barcodeAlreadyFound = true;
 
 
     var scannedBarcode =
-      decodedText.trim();
+      String(decodedText).trim();
 
 
     document
@@ -1126,7 +1171,7 @@
 
         return (
           product.barcode &&
-          product.barcode.trim() ===
+          String(product.barcode).trim() ===
           scannedBarcode
         );
 
@@ -1150,11 +1195,7 @@
         );
 
 
-      if (productCard) {
-
-        openUpdate(productCard);
-
-      } else {
+      if (!productCard) {
 
         document.getElementById(
           "searchInput"
@@ -1172,12 +1213,12 @@
             '"]'
           );
 
+      }
 
-        if (productCard) {
 
-          openUpdate(productCard);
+      if (productCard) {
 
-        }
+        openUpdate(productCard);
 
       }
 
@@ -1229,10 +1270,7 @@
 
     return new Promise(function(resolve) {
 
-      if (
-        !barcodeScanner ||
-        !barcodeScannerRunning
-      ) {
+      if (!barcodeScanner) {
 
         barcodeScannerRunning = false;
 
@@ -1242,6 +1280,11 @@
 
       }
 
+
+      /*
+        Stop the camera even if the
+        internal running flag isn't ready yet.
+      */
 
       barcodeScanner
         .stop()
@@ -1261,7 +1304,11 @@
         })
         .catch(function(error) {
 
-          console.error(error);
+          console.error(
+            "Scanner stop error:",
+            error
+          );
+
 
           barcodeScannerRunning = false;
 
@@ -1311,13 +1358,12 @@
     "load",
     function() {
 
-      var products = getProducts();
+      var products =
+        getProducts();
 
 
       /*
-        Give older saved products an ID
-        if they were created before IDs
-        were added.
+        Give older saved products an ID.
       */
 
       var changed = false;
