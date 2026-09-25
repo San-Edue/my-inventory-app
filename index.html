@@ -7,6 +7,9 @@
 
   <title>My Inventory</title>
 
+  <!-- Barcode scanner library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
   <style>
 
     body {
@@ -92,6 +95,39 @@
       margin-top: 20px;
     }
 
+    /* BARCODE SCANNER */
+
+    #scannerContainer {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    #scannerContainer h2 {
+      margin-top: 0;
+    }
+
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    #scannerStatus {
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    #closeScannerButton {
+      background: #555;
+    }
+
   </style>
 
 </head>
@@ -112,20 +148,58 @@
     placeholder="Search products..."
   >
 
-  <button onclick="scanBarcode()">Scan Barcode</button>
 
-  <button onclick="showAddProduct()">Add Product</button>
+  <button onclick="scanBarcode()">
+    Scan Barcode
+  </button>
+
+
+  <button onclick="showAddProduct()">
+    Add Product
+  </button>
+
+
+  <!-- BARCODE SCANNER -->
+
+  <div
+    id="scannerContainer"
+  >
+
+    <h2>Scan Barcode</h2>
+
+    <div id="reader"></div>
+
+    <div id="scannerStatus">
+      Point your camera at a product barcode.
+    </div>
+
+    <button
+      id="closeScannerButton"
+      onclick="closeBarcodeScanner()"
+    >
+      Close Scanner
+    </button>
+
+  </div>
 
 
   <div class="categories">
 
-    <button onclick="filterProducts('All')">All</button>
+    <button onclick="filterProducts('All')">
+      All
+    </button>
 
-    <button onclick="filterProducts('Skincare')">Skincare</button>
+    <button onclick="filterProducts('Skincare')">
+      Skincare
+    </button>
 
-    <button onclick="filterProducts('Makeup')">Makeup</button>
+    <button onclick="filterProducts('Makeup')">
+      Makeup
+    </button>
 
-    <button onclick="filterProducts('Haircare')">Haircare</button>
+    <button onclick="filterProducts('Haircare')">
+      Haircare
+    </button>
 
   </div>
 
@@ -262,6 +336,14 @@
 
   var currentProduct = null;
   var currentCategory = "All";
+
+  /*
+    BARCODE SCANNER VARIABLE
+  */
+
+  var barcodeScanner = null;
+  var barcodeScannerRunning = false;
+  var barcodeAlreadyFound = false;
 
 
   /*
@@ -520,6 +602,37 @@
 
 
     var products = getProducts();
+
+
+    /*
+      Prevent duplicate barcode entries.
+    */
+
+    if (product.barcode !== "") {
+
+      var duplicateBarcode =
+        products.find(function(existingProduct) {
+
+          return (
+            existingProduct.barcode ===
+            product.barcode
+          );
+
+        });
+
+
+      if (duplicateBarcode) {
+
+        alert(
+          "A product with this barcode already exists."
+        );
+
+        return;
+
+      }
+
+    }
+
 
     products.push(product);
 
@@ -812,16 +925,380 @@
 
 
   /*
-    BARCODE BUTTON
-
-    Scanner will be built later.
+    BARCODE SCANNER
   */
 
   function scanBarcode() {
 
+    if (typeof Html5Qrcode === "undefined") {
+
+      alert(
+        "The barcode scanner could not load. Please check your internet connection and try again."
+      );
+
+      return;
+
+    }
+
+
+    if (barcodeScannerRunning) {
+      return;
+    }
+
+
+    barcodeAlreadyFound = false;
+
+
+    document
+      .getElementById("scannerContainer")
+      .style.display = "block";
+
+
+    document
+      .getElementById("scannerStatus")
+      .textContent =
+      "Starting camera...";
+
+
+    barcodeScanner =
+      new Html5Qrcode("reader");
+
+
+    var scannerConfig = {
+
+      fps: 10,
+
+      qrbox: function(
+        viewfinderWidth,
+        viewfinderHeight
+      ) {
+
+        var width =
+          Math.floor(
+            viewfinderWidth * 0.85
+          );
+
+        var height = 120;
+
+
+        if (height > viewfinderHeight * 0.5) {
+
+          height =
+            Math.floor(
+              viewfinderHeight * 0.5
+            );
+
+        }
+
+
+        return {
+          width: width,
+          height: height
+        };
+
+      },
+
+      aspectRatio: 1.7777778,
+
+      formatsToSupport: [
+
+        Html5QrcodeSupportedFormats.UPC_A,
+
+        Html5QrcodeSupportedFormats.UPC_E,
+
+        Html5QrcodeSupportedFormats.EAN_13,
+
+        Html5QrcodeSupportedFormats.EAN_8,
+
+        Html5QrcodeSupportedFormats.CODE_128,
+
+        Html5QrcodeSupportedFormats.CODE_39
+
+      ]
+
+    };
+
+
+    barcodeScanner
+      .start(
+
+        {
+          facingMode: "environment"
+        },
+
+        scannerConfig,
+
+        onBarcodeScanned,
+
+        function(errorMessage) {
+
+          /*
+            Normal scan failures happen constantly
+            while searching for a barcode.
+
+            We intentionally do nothing here.
+          */
+
+        }
+
+      )
+      .then(function() {
+
+        barcodeScannerRunning = true;
+
+        document
+          .getElementById("scannerStatus")
+          .textContent =
+          "Point your camera at a product barcode.";
+
+      })
+      .catch(function(error) {
+
+        console.error(error);
+
+        document
+          .getElementById("scannerStatus")
+          .textContent =
+          "Could not start the camera.";
+
+        alert(
+          "The camera could not be started. Make sure you gave the browser camera permission and that the website is using HTTPS."
+        );
+
+        closeBarcodeScanner();
+
+      });
+
+  }
+
+
+  /*
+    BARCODE FOUND
+  */
+
+  function onBarcodeScanned(decodedText) {
+
+    if (barcodeAlreadyFound) {
+      return;
+    }
+
+
+    barcodeAlreadyFound = true;
+
+
+    var scannedBarcode =
+      decodedText.trim();
+
+
+    document
+      .getElementById("scannerStatus")
+      .textContent =
+      "Barcode found: " +
+      scannedBarcode;
+
+
+    stopBarcodeScanner()
+      .then(function() {
+
+        handleScannedBarcode(
+          scannedBarcode
+        );
+
+      });
+
+  }
+
+
+  /*
+    HANDLE SCANNED BARCODE
+  */
+
+  function handleScannedBarcode(
+    scannedBarcode
+  ) {
+
+    var products =
+      getProducts();
+
+
+    var existingProduct =
+      products.find(function(product) {
+
+        return (
+          product.barcode &&
+          product.barcode.trim() ===
+          scannedBarcode
+        );
+
+      });
+
+
+    /*
+      PRODUCT ALREADY EXISTS
+    */
+
+    if (existingProduct) {
+
+      closeBarcodeScanner();
+
+
+      var productCard =
+        document.querySelector(
+          '[data-id="' +
+          existingProduct.id +
+          '"]'
+        );
+
+
+      if (productCard) {
+
+        openUpdate(productCard);
+
+      } else {
+
+        document.getElementById(
+          "searchInput"
+        ).value = "";
+
+        currentCategory = "All";
+
+        renderProducts();
+
+
+        productCard =
+          document.querySelector(
+            '[data-id="' +
+            existingProduct.id +
+            '"]'
+          );
+
+
+        if (productCard) {
+
+          openUpdate(productCard);
+
+        }
+
+      }
+
+
+      alert(
+        "Product found: " +
+        existingProduct.name
+      );
+
+
+      return;
+
+    }
+
+
+    /*
+      PRODUCT DOES NOT EXIST
+    */
+
+    closeBarcodeScanner();
+
+
+    showAddProduct();
+
+
+    document.getElementById(
+      "newBarcode"
+    ).value =
+      scannedBarcode;
+
+
+    document.getElementById(
+      "newName"
+    ).focus();
+
+
     alert(
-      "Barcode scanning will be added next."
+      "New barcode found. Enter the product information and save it."
     );
+
+  }
+
+
+  /*
+    STOP BARCODE SCANNER
+  */
+
+  function stopBarcodeScanner() {
+
+    return new Promise(function(resolve) {
+
+      if (
+        !barcodeScanner ||
+        !barcodeScannerRunning
+      ) {
+
+        barcodeScannerRunning = false;
+
+        resolve();
+
+        return;
+
+      }
+
+
+      barcodeScanner
+        .stop()
+        .then(function() {
+
+          barcodeScannerRunning = false;
+
+          barcodeScanner = null;
+
+          document.getElementById(
+            "reader"
+          ).innerHTML = "";
+
+
+          resolve();
+
+        })
+        .catch(function(error) {
+
+          console.error(error);
+
+          barcodeScannerRunning = false;
+
+          barcodeScanner = null;
+
+          document.getElementById(
+            "reader"
+          ).innerHTML = "";
+
+
+          resolve();
+
+        });
+
+    });
+
+  }
+
+
+  /*
+    CLOSE BARCODE SCANNER
+  */
+
+  function closeBarcodeScanner() {
+
+    stopBarcodeScanner();
+
+
+    document
+      .getElementById("scannerContainer")
+      .style.display = "none";
+
+
+    document
+      .getElementById("scannerStatus")
+      .textContent =
+      "Point your camera at a product barcode.";
 
   }
 
