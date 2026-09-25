@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>My Inventory</title>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -79,8 +83,19 @@
       color: #777;
       font-size: 14px;
     }
+
+    #addProductForm,
+    #updateForm {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -88,572 +103,786 @@
   <h1>My Inventory</h1>
 </header>
 
+
 <div class="container">
 
-  <input type="text" placeholder="Search products...">
+  <input
+    id="searchInput"
+    type="text"
+    placeholder="Search products..."
+  >
 
-  <button>Scan Barcode</button>
+  <button onclick="scanBarcode()">Scan Barcode</button>
 
   <button onclick="showAddProduct()">Add Product</button>
 
+
   <div class="categories">
-    <button>All</button>
-    <button>Skincare</button>
-    <button>Makeup</button>
-    <button>Haircare</button>
+
+    <button onclick="filterProducts('All')">All</button>
+
+    <button onclick="filterProducts('Skincare')">Skincare</button>
+
+    <button onclick="filterProducts('Makeup')">Makeup</button>
+
+    <button onclick="filterProducts('Haircare')">Haircare</button>
+
   </div>
 
-  <div class="product">
-    <h3>Hydra Balance Serum</h3>
-    <p class="small">Skincare</p>
-    <p>Live Stock: 8</p>
-    <p>Testers: 2</p>
-    <p>Samples: 5</p>
-    <p>Location: Shelf A1</p>
-    <p class="small">Last checked: Today</p>
-    <button onclick="openUpdate(this.parentElement)">Update Count</button>
+
+  <div id="productList"></div>
+
+
+  <!-- ADD PRODUCT -->
+
+  <div
+    id="addProductForm"
+    style="display:none;"
+  >
+
+    <h2>Add Product</h2>
+
+    <input
+      id="newName"
+      type="text"
+      placeholder="Product name"
+    >
+
+    <select id="newCategory">
+
+      <option value="Skincare">
+        Skincare
+      </option>
+
+      <option value="Makeup">
+        Makeup
+      </option>
+
+      <option value="Haircare">
+        Haircare
+      </option>
+
+    </select>
+
+    <input
+      id="newBarcode"
+      type="text"
+      placeholder="Barcode (optional)"
+    >
+
+    <input
+      id="newStock"
+      type="number"
+      placeholder="Live stock"
+    >
+
+    <input
+      id="newTester"
+      type="number"
+      placeholder="Testers"
+    >
+
+    <input
+      id="newSamples"
+      type="number"
+      placeholder="Samples"
+    >
+
+    <input
+      id="newLocation"
+      type="text"
+      placeholder="Location"
+    >
+
+    <button onclick="saveNewProduct()">
+      Save Product
+    </button>
+
+    <button onclick="closeAddProduct()">
+      Cancel
+    </button>
+
   </div>
 
-  <div class="product">
-    <h3>Velvet Skin Foundation</h3>
-    <p class="small">Makeup</p>
-    <p>Live Stock: 12</p>
-    <p>Testers: 1</p>
-    <p>Samples: 3</p>
-    <p>Location: Shelf B2</p>
-    <p class="small">Last checked: Today</p>
-    <button>Update Count</button>
-  </div>
 
-  <div class="product">
-    <h3>Nourishing Hair Mask</h3>
-    <p class="small">Haircare</p>
-    <p>Live Stock: 6</p>
-    <p>Testers: 1</p>
-    <p>Samples: 4</p>
-    <p>Location: Shelf C1</p>
-    <p class="small">Last checked: Yesterday</p>
-    <button>Update Count</button>
+  <!-- UPDATE PRODUCT -->
+
+  <div
+    id="updateForm"
+    style="display:none;"
+  >
+
+    <h2>Update Count</h2>
+
+    <input
+      id="updateStock"
+      type="number"
+      placeholder="Live stock"
+    >
+
+    <input
+      id="updateTester"
+      type="number"
+      placeholder="Testers"
+    >
+
+    <input
+      id="updateSamples"
+      type="number"
+      placeholder="Samples"
+    >
+
+    <input
+      id="updateLocation"
+      type="text"
+      placeholder="Location"
+    >
+
+    <button onclick="saveUpdate()">
+      Save Changes
+    </button>
+
+    <button
+      onclick="deleteProduct()"
+      style="background:#b00020;"
+    >
+      Delete Product
+    </button>
+
+    <button onclick="closeUpdate()">
+      Cancel
+    </button>
+
   </div>
 
 </div>
 
+
 <script>
 
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
+  var currentProduct = null;
+  var currentCategory = "All";
 
-  const searchInput = document.querySelector('input[placeholder="Search products..."]');
-  const products = document.querySelectorAll(".product");
 
-  searchInput.addEventListener("input", function() {
+  /*
+    INITIAL PRODUCTS
 
-    const searchText = searchInput.value.toLowerCase();
+    These are only used if there is no saved inventory yet.
+  */
+
+  var defaultProducts = [
+
+    {
+      id: "default-1",
+      name: "Hydra Balance Serum",
+      category: "Skincare",
+      barcode: "",
+      stock: "8",
+      tester: "2",
+      samples: "5",
+      location: "Shelf A1"
+    },
+
+    {
+      id: "default-2",
+      name: "Velvet Skin Foundation",
+      category: "Makeup",
+      barcode: "",
+      stock: "12",
+      tester: "1",
+      samples: "3",
+      location: "Shelf B2"
+    },
+
+    {
+      id: "default-3",
+      name: "Nourishing Hair Mask",
+      category: "Haircare",
+      barcode: "",
+      stock: "6",
+      tester: "1",
+      samples: "4",
+      location: "Shelf C1"
+    }
+
+  ];
+
+
+  /*
+    LOAD INVENTORY
+  */
+
+  function getProducts() {
+
+    var savedProducts =
+      JSON.parse(localStorage.getItem("inventoryProducts"));
+
+    if (!savedProducts) {
+
+      savedProducts = defaultProducts;
+
+      localStorage.setItem(
+        "inventoryProducts",
+        JSON.stringify(savedProducts)
+      );
+
+    }
+
+    return savedProducts;
+
+  }
+
+
+  /*
+    DISPLAY PRODUCTS
+  */
+
+  function renderProducts() {
+
+    var productList =
+      document.getElementById("productList");
+
+    productList.innerHTML = "";
+
+    var products = getProducts();
+
+    var searchText =
+      document.getElementById("searchInput")
+        .value
+        .toLowerCase()
+        .trim();
+
 
     products.forEach(function(product) {
 
-      const productName = product.querySelector("h3").textContent.toLowerCase();
+      var nameMatches =
+        product.name
+          .toLowerCase()
+          .includes(searchText);
 
-      if (productName.includes(searchText)) {
-        product.style.display = "block";
-      } else {
-        product.style.display = "none";
+      var categoryMatches =
+        currentCategory === "All" ||
+        product.category === currentCategory;
+
+
+      if (!nameMatches || !categoryMatches) {
+        return;
       }
+
+
+      var productDiv =
+        document.createElement("div");
+
+      productDiv.className = "product";
+
+      productDiv.setAttribute(
+        "data-id",
+        product.id
+      );
+
+
+      productDiv.innerHTML =
+
+        "<h3>" +
+        product.name +
+        "</h3>" +
+
+        "<p class='small'>" +
+        product.category +
+        "</p>" +
+
+        "<p>Barcode: " +
+        (product.barcode || "None") +
+        "</p>" +
+
+        "<p>Live Stock: " +
+        product.stock +
+        "</p>" +
+
+        "<p>Testers: " +
+        product.tester +
+        "</p>" +
+
+        "<p>Samples: " +
+        product.samples +
+        "</p>" +
+
+        "<p>Location: " +
+        product.location +
+        "</p>" +
+
+        "<p class='small'>Last checked: Today</p>" +
+
+        "<button onclick='openUpdate(this.parentElement)'>" +
+        "Update Count" +
+        "</button>";
+
+
+      productList.appendChild(productDiv);
 
     });
 
-  });
+  }
 
-});
-</script>
-<script>
-const categoryButtons = document.querySelectorAll(".categories button");
-const products = document.querySelectorAll(".product");
 
-categoryButtons.forEach(function(button) {
+  /*
+    SEARCH
+  */
 
-  button.addEventListener("click", function() {
+  document
+    .getElementById("searchInput")
+    .addEventListener("input", function() {
 
-    const selectedCategory = button.textContent.trim().toLowerCase();
-
-    products.forEach(function(product) {
-
-      const productCategory = product.querySelector(".small").textContent.trim().toLowerCase();
-
-      if (selectedCategory === "all" || productCategory === selectedCategory) {
-        product.style.display = "block";
-      } else {
-        product.style.display = "none";
-      }
+      renderProducts();
 
     });
 
-  });
 
-});
-</script>
-  <div id="addProductForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-top:20px;">
+  /*
+    CATEGORY FILTER
+  */
 
-  <h2>Add Product</h2>
+  function filterProducts(category) {
 
-  <input id="newName" type="text" placeholder="Product name">
+    currentCategory = category;
 
-  <select id="newCategory">
-    <option value="Skincare">Skincare</option>
-    <option value="Makeup">Makeup</option>
-    <option value="Haircare">Haircare</option>
-  </select>
+    renderProducts();
 
-  <input id="newBarcode" type="text" placeholder="Barcode (optional)">
-
-  <input id="newStock" type="number" placeholder="Live stock">
-
-  <input id="newTester" type="number" placeholder="Testers">
-
-  <input id="newSamples" type="number" placeholder="Samples">
-
-  <input id="newLocation" type="text" placeholder="Location">
-
-  <button onclick="saveNewProduct()">Save Product</button>
-
-  <button onclick="closeAddProduct()">Cancel</button>
-
-</div>
-  <script>
-function showAddProduct() {
-  document.getElementById("addProductForm").style.display = "block";
-}
-
-function closeAddProduct() {
-  document.getElementById("addProductForm").style.display = "none";
-}
-</script>
-<script>
-function saveNewProduct() {
-
-  var product = {
-    name: document.getElementById("newName").value,
-    category: document.getElementById("newCategory").value,
-    barcode: document.getElementById("newBarcode").value,
-    stock: document.getElementById("newStock").value || "0",
-    tester: document.getElementById("newTester").value || "0",
-    samples: document.getElementById("newSamples").value || "0",
-    location: document.getElementById("newLocation").value || "Not specified"
-  };
-
-  if (product.name === "") {
-    alert("Please enter a product name.");
-    return;
   }
 
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
-  products.push(product);
+  /*
+    ADD PRODUCT FORM
+  */
 
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  function showAddProduct() {
 
-  addProductToPage(product);
+    document
+      .getElementById("addProductForm")
+      .style.display = "block";
 
-  closeAddProduct();
-
-  document.getElementById("newName").value = "";
-  document.getElementById("newBarcode").value = "";
-  document.getElementById("newStock").value = "";
-  document.getElementById("newTester").value = "";
-  document.getElementById("newSamples").value = "";
-  document.getElementById("newLocation").value = "";
-
-  alert("Product added!");
-
-}
-
-function addProductToPage(product) {
-
-  var productDiv = document.createElement("div");
-
-  productDiv.className = "product";
-
-  productDiv.innerHTML =
-    "<h3>" + product.name + "</h3>" +
-    "<p class='small'>" + product.category + "</p>" +
-    "<p>Barcode: " + (product.barcode || "None") + "</p>" +
-    "<p>Live Stock: " + product.stock + "</p>" +
-    "<p>Testers: " + product.tester + "</p>" +
-    "<p>Samples: " + product.samples + "</p>" +
-    "<p>Location: " + product.location + "</p>" +
-    "<p class='small'>Last checked: Today</p>" +
-    "<button onclick='openUpdate(this.parentElement)'>Update Count</button>";
-
-  document.querySelector(".container").appendChild(productDiv);
-
-}
-
-</script>
-  <script>
-window.addEventListener("load", function() {
-
-  var savedProducts =
-    JSON.parse(localStorage.getItem("inventoryProducts")) || [];
-
-  savedProducts.forEach(function(product) {
-    addProductToPage(product);
-  });
-
-});
-</script>
-
-  <div id="updateForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-top:20px;">
-
-  <h2>Update Count</h2>
-
-  <input id="updateStock" type="number" placeholder="Live stock">
-
-  <input id="updateTester" type="number" placeholder="Testers">
-
-  <input id="updateSamples" type="number" placeholder="Samples">
-
-  <input id="updateLocation" type="text" placeholder="Location">
-
-  <button onclick="saveUpdate()">Save Changes</button>
-<button onclick="deleteProduct()" style="background:#b00020;">Delete Product</button>
-  <button onclick="closeUpdate()">Cancel</button>
-
-</div>
-  <script>
-var currentProduct = null;
-
-var currentProduct = null;
-
-function getProductValue(product, label) {
-  var paragraphs = product.querySelectorAll("p");
-
-  for (var i = 0; i < paragraphs.length; i++) {
-    var text = paragraphs[i].textContent.trim();
-
-    if (text.startsWith(label)) {
-      return text.replace(label, "").trim();
-    }
   }
 
-  return "";
-}
 
-function openUpdate(product) {
+  function closeAddProduct() {
 
-  currentProduct = product;
+    document
+      .getElementById("addProductForm")
+      .style.display = "none";
 
-  document.getElementById("updateStock").value =
-    getProductValue(product, "Live Stock:");
-
-  document.getElementById("updateTester").value =
-    getProductValue(product, "Testers:");
-
-  document.getElementById("updateSamples").value =
-    getProductValue(product, "Samples:");
-
-  document.getElementById("updateLocation").value =
-    getProductValue(product, "Location:");
-
-  document.getElementById("updateForm").style.display = "block";
-}
-
-function saveUpdate() {
-
-  if (!currentProduct) return;
-
-  var newStock = document.getElementById("updateStock").value || "0";
-  var newTester = document.getElementById("updateTester").value || "0";
-  var newSamples = document.getElementById("updateSamples").value || "0";
-  var newLocation = document.getElementById("updateLocation").value || "Not specified";
-
-  var paragraphs = currentProduct.querySelectorAll("p");
-
-  paragraphs.forEach(function(p) {
-
-    var text = p.textContent.trim();
-
-    if (text.startsWith("Live Stock:")) {
-      p.textContent = "Live Stock: " + newStock;
-    }
-
-    if (text.startsWith("Testers:")) {
-      p.textContent = "Testers: " + newTester;
-    }
-
-    if (text.startsWith("Samples:")) {
-      p.textContent = "Samples: " + newSamples;
-    }
-
-    if (text.startsWith("Location:")) {
-      p.textContent = "Location: " + newLocation;
-    }
-
-  });
-
-  var name = currentProduct.querySelector("h3").textContent.trim();
-
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
-
-  var index = products.findIndex(function(product) {
-    return product.name === name;
-  });
-
-  if (index !== -1) {
-    products[index].stock = newStock;
-    products[index].tester = newTester;
-    products[index].samples = newSamples;
-    products[index].location = newLocation;
-
-    localStorage.setItem("inventoryProducts", JSON.stringify(products));
   }
 
-  closeUpdate();
 
-  alert("Count updated!");
-}
+  /*
+    SAVE NEW PRODUCT
+  */
 
-function deleteProduct() {
+  function saveNewProduct() {
 
-  if (!currentProduct) return;
+    var product = {
 
-  var name = currentProduct.querySelector("h3").textContent.trim();
+      id:
+        "product-" +
+        Date.now(),
 
-  if (!confirm("Are you sure you want to delete " + name + "?")) {
-    return;
+      name:
+        document.getElementById("newName").value.trim(),
+
+      category:
+        document.getElementById("newCategory").value,
+
+      barcode:
+        document.getElementById("newBarcode").value.trim(),
+
+      stock:
+        document.getElementById("newStock").value || "0",
+
+      tester:
+        document.getElementById("newTester").value || "0",
+
+      samples:
+        document.getElementById("newSamples").value || "0",
+
+      location:
+        document.getElementById("newLocation").value.trim() ||
+        "Not specified"
+
+    };
+
+
+    if (product.name === "") {
+
+      alert("Please enter a product name.");
+
+      return;
+
+    }
+
+
+    var products = getProducts();
+
+    products.push(product);
+
+
+    localStorage.setItem(
+      "inventoryProducts",
+      JSON.stringify(products)
+    );
+
+
+    closeAddProduct();
+
+    clearAddProductForm();
+
+    renderProducts();
+
+
+    alert("Product added!");
+
   }
 
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
-  products = products.filter(function(product) {
-    return product.name !== name;
-  });
+  /*
+    CLEAR ADD PRODUCT FORM
+  */
 
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  function clearAddProductForm() {
 
-  currentProduct.remove();
+    document.getElementById("newName").value = "";
 
-  closeUpdate();
+    document.getElementById("newBarcode").value = "";
 
-  alert("Product deleted.");
-}
+    document.getElementById("newStock").value = "";
 
-function closeUpdate() {
-  document.getElementById("updateForm").style.display = "none";
-}
+    document.getElementById("newTester").value = "";
 
-function openUpdate(product) {
+    document.getElementById("newSamples").value = "";
 
-  currentProduct = product;
+    document.getElementById("newLocation").value = "";
 
-  document.getElementById("updateStock").value =
-    getProductValue(product, "Live Stock:");
-
-  document.getElementById("updateTester").value =
-    getProductValue(product, "Testers:");
-
-  document.getElementById("updateSamples").value =
-    getProductValue(product, "Samples:");
-
-  document.getElementById("updateLocation").value =
-    getProductValue(product, "Location:");
-
-  document.getElementById("updateForm").style.display = "block";
-}
-
-function saveUpdate() {
-
-  if (!currentProduct) return;
-
-  var newStock = document.getElementById("updateStock").value || "0";
-  var newTester = document.getElementById("updateTester").value || "0";
-  var newSamples = document.getElementById("updateSamples").value || "0";
-  var newLocation = document.getElementById("updateLocation").value || "Not specified";
-
-  var paragraphs = currentProduct.querySelectorAll("p");
-
-  paragraphs.forEach(function(p) {
-
-    var text = p.textContent.trim();
-
-    if (text.startsWith("Live Stock:")) {
-      p.textContent = "Live Stock: " + newStock;
-    }
-
-    if (text.startsWith("Testers:")) {
-      p.textContent = "Testers: " + newTester;
-    }
-
-    if (text.startsWith("Samples:")) {
-      p.textContent = "Samples: " + newSamples;
-    }
-
-    if (text.startsWith("Location:")) {
-      p.textContent = "Location: " + newLocation;
-    }
-
-  });
-
-  var name = currentProduct.querySelector("h3").textContent.trim();
-
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
-
-  var index = products.findIndex(function(product) {
-    return product.name === name;
-  });
-
-  if (index !== -1) {
-    products[index].stock = newStock;
-    products[index].tester = newTester;
-    products[index].samples = newSamples;
-    products[index].location = newLocation;
-
-    localStorage.setItem("inventoryProducts", JSON.stringify(products));
   }
 
-  closeUpdate();
 
-  alert("Count updated!");
-}
+  /*
+    GET PRODUCT VALUE
+  */
 
-function deleteProduct() {
+  function getProductValue(product, label) {
 
-  if (!currentProduct) return;
+    var paragraphs =
+      product.querySelectorAll("p");
 
-  var name = currentProduct.querySelector("h3").textContent.trim();
 
-  if (!confirm("Are you sure you want to delete " + name + "?")) {
-    return;
+    for (
+      var i = 0;
+      i < paragraphs.length;
+      i++
+    ) {
+
+      var text =
+        paragraphs[i]
+          .textContent
+          .trim();
+
+
+      if (text.startsWith(label)) {
+
+        return text
+          .replace(label, "")
+          .trim();
+
+      }
+
+    }
+
+
+    return "";
+
   }
 
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
-  products = products.filter(function(product) {
-    return product.name !== name;
-  });
+  /*
+    OPEN UPDATE FORM
+  */
 
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  function openUpdate(product) {
 
-  currentProduct.remove();
+    currentProduct = product;
 
-  closeUpdate();
 
-  alert("Product deleted.");
-}
+    document.getElementById("updateStock").value =
+      getProductValue(
+        product,
+        "Live Stock:"
+      );
 
-function closeUpdate() {
-  document.getElementById("updateForm").style.display = "none";
-}
 
-function openUpdate(product) {
+    document.getElementById("updateTester").value =
+      getProductValue(
+        product,
+        "Testers:"
+      );
 
-  currentProduct = product;
 
-  document.getElementById("updateStock").value =
-    getProductValue(product, "Live Stock:");
+    document.getElementById("updateSamples").value =
+      getProductValue(
+        product,
+        "Samples:"
+      );
 
-  document.getElementById("updateTester").value =
-    getProductValue(product, "Testers:");
 
-  document.getElementById("updateSamples").value =
-    getProductValue(product, "Samples:");
+    document.getElementById("updateLocation").value =
+      getProductValue(
+        product,
+        "Location:"
+      );
 
-  document.getElementById("updateLocation").value =
-    getProductValue(product, "Location:");
 
-  document.getElementById("updateForm").style.display = "block";
-}
-function saveUpdate() {
+    document
+      .getElementById("updateForm")
+      .style.display = "block";
 
-  if (!currentProduct) return;
-
-  var newStock = document.getElementById("updateStock").value || "0";
-  var newTester = document.getElementById("updateTester").value || "0";
-  var newSamples = document.getElementById("updateSamples").value || "0";
-  var newLocation = document.getElementById("updateLocation").value || "Not specified";
-
-  var paragraphs = currentProduct.querySelectorAll("p");
-
-  paragraphs.forEach(function(p) {
-
-    var text = p.textContent.trim();
-
-    if (text.startsWith("Live Stock:")) {
-      p.textContent = "Live Stock: " + newStock;
-    }
-
-    if (text.startsWith("Testers:")) {
-      p.textContent = "Testers: " + newTester;
-    }
-
-    if (text.startsWith("Samples:")) {
-      p.textContent = "Samples: " + newSamples;
-    }
-
-    if (text.startsWith("Location:")) {
-      p.textContent = "Location: " + newLocation;
-    }
-
-  });
-
-  var name = currentProduct.querySelector("h3").textContent.trim();
-
-var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
-
-var index = products.findIndex(function(product) {
-  return product.name === name;
-});
-
-if (index !== -1) {
-  products[index].stock = newStock;
-  products[index].tester = newTester;
-  products[index].samples = newSamples;
-  products[index].location = newLocation;
-
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
-}
-
-closeUpdate();
-
-alert("Count updated!");
-}
-function closeUpdate() {
-  document.getElementById("updateForm").style.display = "none";
-}
-   function deleteProduct() {
-
-  if (!currentProduct) {
-    alert("No product selected.");
-    return;
   }
 
-  var name = currentProduct.querySelector("h3").textContent.trim();
 
-  if (!confirm("Are you sure you want to delete " + name + "?")) {
-    return;
+  /*
+    SAVE UPDATED COUNT
+  */
+
+  function saveUpdate() {
+
+    if (!currentProduct) {
+      return;
+    }
+
+
+    var newStock =
+      document.getElementById("updateStock").value || "0";
+
+
+    var newTester =
+      document.getElementById("updateTester").value || "0";
+
+
+    var newSamples =
+      document.getElementById("updateSamples").value || "0";
+
+
+    var newLocation =
+      document.getElementById("updateLocation").value.trim() ||
+      "Not specified";
+
+
+    var productId =
+      currentProduct.getAttribute("data-id");
+
+
+    var products = getProducts();
+
+
+    var index =
+      products.findIndex(function(product) {
+
+        return product.id === productId;
+
+      });
+
+
+    if (index === -1) {
+
+      alert("Product could not be found.");
+
+      return;
+
+    }
+
+
+    products[index].stock =
+      newStock;
+
+    products[index].tester =
+      newTester;
+
+    products[index].samples =
+      newSamples;
+
+    products[index].location =
+      newLocation;
+
+
+    localStorage.setItem(
+      "inventoryProducts",
+      JSON.stringify(products)
+    );
+
+
+    closeUpdate();
+
+    renderProducts();
+
+
+    alert("Count updated!");
+
   }
 
-  var products = JSON.parse(localStorage.getItem("inventoryProducts")) || [];
 
-products = products.filter(function(product) {
-  return product.name !== name;
-});
+  /*
+    DELETE PRODUCT
+  */
 
-  localStorage.setItem("inventoryProducts", JSON.stringify(products));
+  function deleteProduct() {
 
-  currentProduct.remove();
+    if (!currentProduct) {
 
-  closeUpdate();
+      alert("No product selected.");
 
-  alert("Product deleted.");
-}
-  currentProduct.remove();
+      return;
 
-  closeUpdate();
+    }
 
-  alert("Product deleted.");
-}
+
+    var productName =
+      currentProduct
+        .querySelector("h3")
+        .textContent
+        .trim();
+
+
+    var productId =
+      currentProduct.getAttribute("data-id");
+
+
+    var confirmed =
+      confirm(
+        "Are you sure you want to delete " +
+        productName +
+        "?"
+      );
+
+
+    if (!confirmed) {
+
+      return;
+
+    }
+
+
+    var products = getProducts();
+
+
+    products =
+      products.filter(function(product) {
+
+        return product.id !== productId;
+
+      });
+
+
+    localStorage.setItem(
+      "inventoryProducts",
+      JSON.stringify(products)
+    );
+
+
+    currentProduct = null;
+
+    closeUpdate();
+
+    renderProducts();
+
+
+    alert("Product deleted.");
+
+  }
+
+
+  /*
+    CLOSE UPDATE FORM
+  */
+
+  function closeUpdate() {
+
+    document
+      .getElementById("updateForm")
+      .style.display = "none";
+
+    currentProduct = null;
+
+  }
+
+
+  /*
+    BARCODE BUTTON
+
+    Scanner will be built later.
+  */
+
+  function scanBarcode() {
+
+    alert(
+      "Barcode scanning will be added next."
+    );
+
+  }
+
+
+  /*
+    INITIALIZE APP
+  */
+
+  window.addEventListener(
+    "load",
+    function() {
+
+      var products = getProducts();
+
+
+      /*
+        Give older saved products an ID
+        if they were created before IDs
+        were added.
+      */
+
+      var changed = false;
+
+
+      products.forEach(function(product) {
+
+        if (!product.id) {
+
+          product.id =
+            "product-" +
+            Date.now() +
+            "-" +
+            Math.random()
+              .toString(36)
+              .substring(2, 8);
+
+          changed = true;
+
+        }
+
+      });
+
+
+      if (changed) {
+
+        localStorage.setItem(
+          "inventoryProducts",
+          JSON.stringify(products)
+        );
+
+      }
+
+
+      renderProducts();
+
+    }
+  );
 
 </script>
+
+
 </body>
+
 </html>
