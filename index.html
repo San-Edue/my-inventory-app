@@ -135,6 +135,37 @@
       background: #555;
     }
 
+    /* NEW BARCODE MESSAGE */
+
+    #newBarcodePrompt {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    #newBarcodePrompt h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    #newBarcodeNumber {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 16px;
+      word-break: break-all;
+      margin-bottom: 15px;
+    }
+
+    #newBarcodePrompt .cancel-button {
+      background: #555;
+    }
+
   </style>
 
 </head>
@@ -183,6 +214,32 @@
       onclick="closeBarcodeScanner()"
     >
       Close Scanner
+    </button>
+
+  </div>
+
+
+  <!-- NEW BARCODE PROMPT -->
+
+  <div id="newBarcodePrompt">
+
+    <h2>New Product Found</h2>
+
+    <p>
+      This barcode isn't in your inventory yet.
+    </p>
+
+    <div id="newBarcodeNumber"></div>
+
+    <button onclick="addScannedProduct()">
+      Add Product
+    </button>
+
+    <button
+      class="cancel-button"
+      onclick="cancelScannedProduct()"
+    >
+      Cancel
     </button>
 
   </div>
@@ -349,6 +406,12 @@
   var barcodeScanner = null;
   var barcodeScannerRunning = false;
   var barcodeAlreadyFound = false;
+
+  /*
+    TEMPORARY SCANNED BARCODE
+  */
+
+  var pendingScannedBarcode = "";
 
 
   /*
@@ -963,11 +1026,6 @@
       "Starting camera...";
 
 
-    /*
-      Clear anything left over from
-      a previous scan.
-    */
-
     document
       .getElementById("reader")
       .innerHTML = "";
@@ -976,11 +1034,6 @@
     barcodeScanner =
       new Html5Qrcode("reader");
 
-
-    /*
-      Barcode formats commonly used
-      on retail products.
-    */
 
     var formats = [
 
@@ -1006,10 +1059,6 @@
     var scannerConfig = {
 
       fps: 15,
-
-      /*
-        Make the scanning area large.
-      */
 
       qrbox: function(
         viewfinderWidth,
@@ -1065,11 +1114,7 @@
         function(errorMessage) {
 
           /*
-            The scanner continuously reports
-            failed scan attempts while searching.
-
-            This is normal, so we don't show
-            an error for every failed frame.
+            Normal scan failures are ignored.
           */
 
         }
@@ -1179,7 +1224,7 @@
 
 
     /*
-      PRODUCT ALREADY EXISTS
+      EXISTING PRODUCT
     */
 
     if (existingProduct) {
@@ -1235,10 +1280,51 @@
 
 
     /*
-      PRODUCT DOES NOT EXIST
+      NEW PRODUCT
+
+      Store the barcode temporarily.
     */
 
+    pendingScannedBarcode =
+      scannedBarcode;
+
+
     closeBarcodeScanner();
+
+
+    document.getElementById(
+      "newBarcodeNumber"
+    ).textContent =
+      scannedBarcode;
+
+
+    document.getElementById(
+      "newBarcodePrompt"
+    ).style.display =
+      "block";
+
+  }
+
+
+  /*
+    ADD SCANNED PRODUCT
+  */
+
+  function addScannedProduct() {
+
+    if (
+      !pendingScannedBarcode
+    ) {
+
+      return;
+
+    }
+
+
+    document.getElementById(
+      "newBarcodePrompt"
+    ).style.display =
+      "none";
 
 
     showAddProduct();
@@ -1247,17 +1333,29 @@
     document.getElementById(
       "newBarcode"
     ).value =
-      scannedBarcode;
+      pendingScannedBarcode;
 
 
     document.getElementById(
       "newName"
     ).focus();
 
+  }
 
-    alert(
-      "New barcode found. Enter the product information and save it."
-    );
+
+  /*
+    CANCEL SCANNED PRODUCT
+  */
+
+  function cancelScannedProduct() {
+
+    pendingScannedBarcode = "";
+
+
+    document.getElementById(
+      "newBarcodePrompt"
+    ).style.display =
+      "none";
 
   }
 
@@ -1280,11 +1378,6 @@
 
       }
 
-
-      /*
-        Stop the camera even if the
-        internal running flag isn't ready yet.
-      */
 
       barcodeScanner
         .stop()
@@ -1361,10 +1454,6 @@
       var products =
         getProducts();
 
-
-      /*
-        Give older saved products an ID.
-      */
 
       var changed = false;
 
