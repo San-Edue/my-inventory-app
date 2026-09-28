@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>My Inventory</title>
 
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <style>
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -95,6 +98,33 @@ button:active {
     color: #555;
 }
 
+
+/* NORMAL PRODUCT COUNTS */
+
+.product-count {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+
+/* INLINE UPDATE SECTION */
+
+.inline-update {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+}
+
+.inline-update h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+
+/* QUICK COUNT ROW */
+
 .count-row {
     display: flex;
     align-items: center;
@@ -130,18 +160,57 @@ button:active {
     font-weight: bold;
 }
 
-.product-update-button {
-    margin-top: 10px;
+
+/* HISTORY */
+
+.history-panel {
+    display: none;
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
 }
 
-#addProductForm,
-#updateForm,
-#historyPanel {
+.history-entry {
+    border-top: 1px solid #ddd;
+    padding: 12px 0;
+}
+
+.history-entry:first-child {
+    border-top: none;
+}
+
+.history-date {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 4px;
+}
+
+.history-change {
+    font-weight: bold;
+}
+
+.empty-history {
+    color: #777;
+    font-size: 14px;
+}
+
+
+/* FORMS */
+
+#addProductForm {
     background: white;
     padding: 20px;
     border-radius: 10px;
     margin-top: 20px;
 }
+
+.section-title {
+    margin-top: 0;
+}
+
+
+/* SCANNER */
 
 #scannerContainer {
     display: none;
@@ -181,6 +250,9 @@ button:active {
     background: #555;
 }
 
+
+/* NEW BARCODE */
+
 #newBarcodePrompt {
     display: none;
     background: white;
@@ -206,437 +278,224 @@ button:active {
     margin-bottom: 15px;
 }
 
-#newBarcodePrompt .cancel-button,
-#historyPanel .close-history {
+
+/* BUTTON COLORS */
+
+.secondary-button {
     background: #555;
-}
-
-.history-entry {
-    border-top: 1px solid #ddd;
-    padding: 12px 0;
-}
-
-.history-entry:first-child {
-    border-top: none;
-}
-
-.history-date {
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 4px;
-}
-
-.history-change {
-    font-weight: bold;
-}
-
-.empty-history {
-    color: #777;
-    font-size: 14px;
 }
 
 .danger-button {
     background: #b00020;
 }
 
-.secondary-button {
-    background: #555;
-}
-
-.section-title {
-    margin-top: 0;
-}
-
-@media (max-width: 500px) {
-    .container {
-        padding: 15px;
-    }
-
-    .count-row {
-        align-items: center;
-    }
-
-    .count-label {
-        font-size: 15px;
-    }
-}
 </style>
+
 </head>
 
 <body>
 
+
 <header>
-    <h1>My Inventory</h1>
+
+<h1>My Inventory</h1>
+
 </header>
+
 
 <div class="container">
 
+
+<!-- SEARCH -->
+
+<input
+    id="searchInput"
+    type="text"
+    placeholder="Search products..."
+>
+
+
+<!-- MAIN BUTTONS -->
+
+<button onclick="scanBarcode()">
+    Scan Barcode
+</button>
+
+
+<button onclick="showAddProduct()">
+    Add Product
+</button>
+
+
+<!-- BARCODE SCANNER -->
+
+<div id="scannerContainer">
+
+    <h2>Scan Barcode</h2>
+
+    <div id="reader"></div>
+
+    <div id="scannerStatus">
+        Point your camera at a product barcode.
+    </div>
+
+    <button
+        id="closeScannerButton"
+        onclick="closeBarcodeScanner()"
+    >
+        Close Scanner
+    </button>
+
+</div>
+
+
+<!-- NEW BARCODE -->
+
+<div id="newBarcodePrompt">
+
+    <h2>New Product Found</h2>
+
+    <p>
+        This barcode isn't in your inventory yet.
+    </p>
+
+    <div id="newBarcodeNumber"></div>
+
+    <button onclick="addScannedProduct()">
+        Add Product
+    </button>
+
+    <button
+        class="secondary-button"
+        onclick="cancelScannedProduct()"
+    >
+        Cancel
+    </button>
+
+</div>
+
+
+<!-- CATEGORY FILTERS -->
+
+<div class="categories">
+
+    <button onclick="filterProducts('All')">
+        All
+    </button>
+
+    <button onclick="filterProducts('Skincare')">
+        Skincare
+    </button>
+
+    <button onclick="filterProducts('Makeup')">
+        Makeup
+    </button>
+
+    <button onclick="filterProducts('Haircare')">
+        Haircare
+    </button>
+
+</div>
+
+
+<!-- PRODUCT LIST -->
+
+<div id="productList"></div>
+
+
+<!-- ADD PRODUCT -->
+
+<div
+    id="addProductForm"
+    style="display:none;"
+>
+
+    <h2 class="section-title">
+        Add Product
+    </h2>
+
+
     <input
-        id="searchInput"
+        id="newName"
         type="text"
-        placeholder="Search products..."
+        placeholder="Product name"
     >
 
-    <button onclick="scanBarcode()">Scan Barcode</button>
 
-    <button onclick="showAddProduct()">Add Product</button>
+    <select id="newCategory">
 
-
-    <!-- BARCODE SCANNER -->
-
-    <div id="scannerContainer">
-
-        <h2>Scan Barcode</h2>
-
-        <div id="reader"></div>
-
-        <div id="scannerStatus">
-            Point your camera at a product barcode.
-        </div>
-
-        <button
-            id="closeScannerButton"
-            onclick="closeBarcodeScanner()"
-        >
-            Close Scanner
-        </button>
-
-    </div>
-
-
-    <!-- NEW BARCODE PROMPT -->
-
-    <div id="newBarcodePrompt">
-
-        <h2>New Product Found</h2>
-
-        <p>
-            This barcode isn't in your inventory yet.
-        </p>
-
-        <div id="newBarcodeNumber"></div>
-
-        <button onclick="addScannedProduct()">
-            Add Product
-        </button>
-
-        <button
-            class="cancel-button"
-            onclick="cancelScannedProduct()"
-        >
-            Cancel
-        </button>
-
-    </div>
-
-
-    <!-- CATEGORY FILTERS -->
-
-    <div class="categories">
-
-        <button onclick="filterProducts('All')">
-            All
-        </button>
-
-        <button onclick="filterProducts('Skincare')">
+        <option value="Skincare">
             Skincare
-        </button>
+        </option>
 
-        <button onclick="filterProducts('Makeup')">
+        <option value="Makeup">
             Makeup
-        </button>
+        </option>
 
-        <button onclick="filterProducts('Haircare')">
+        <option value="Haircare">
             Haircare
-        </button>
+        </option>
 
-    </div>
-
-
-    <!-- PRODUCT LIST -->
-
-    <div id="productList"></div>
+    </select>
 
 
-    <!-- ADD PRODUCT -->
-
-    <div
-        id="addProductForm"
-        style="display:none;"
+    <input
+        id="newBarcode"
+        type="text"
+        placeholder="Barcode (optional)"
     >
 
-        <h2 class="section-title">
-            Add Product
-        </h2>
 
-        <input
-            id="newName"
-            type="text"
-            placeholder="Product name"
-        >
-
-        <select id="newCategory">
-
-            <option value="Skincare">
-                Skincare
-            </option>
-
-            <option value="Makeup">
-                Makeup
-            </option>
-
-            <option value="Haircare">
-                Haircare
-            </option>
-
-        </select>
-
-        <input
-            id="newBarcode"
-            type="text"
-            placeholder="Barcode (optional)"
-        >
-
-        <input
-            id="newStock"
-            type="number"
-            min="0"
-            placeholder="Live stock"
-        >
-
-        <input
-            id="newTester"
-            type="number"
-            min="0"
-            placeholder="Testers"
-        >
-
-        <input
-            id="newSamples"
-            type="number"
-            min="0"
-            placeholder="Samples"
-        >
-
-        <button onclick="saveNewProduct()">
-            Save Product
-        </button>
-
-        <button
-            class="secondary-button"
-            onclick="closeAddProduct()"
-        >
-            Cancel
-        </button>
-
-    </div>
-
-
-    <!-- UPDATE COUNT -->
-
-    <div
-        id="updateForm"
-        style="display:none;"
+    <input
+        id="newStock"
+        type="number"
+        min="0"
+        placeholder="Live stock"
     >
 
-        <h2 class="section-title">
-            Update Count
-        </h2>
 
-        <p
-            id="updateProductName"
-            class="small"
-        ></p>
-
-
-        <label>
-            Live Stock
-        </label>
-
-        <div class="count-row">
-
-            <div class="count-label">
-                Quick Count
-            </div>
-
-            <div class="count-controls">
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('stock', -1)"
-                >
-                    −
-                </button>
-
-                <div
-                    id="quickStockValue"
-                    class="count-value"
-                >
-                    0
-                </div>
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('stock', 1)"
-                >
-                    +
-                </button>
-
-            </div>
-
-        </div>
-
-        <input
-            id="updateStock"
-            type="number"
-            min="0"
-            placeholder="Live stock"
-        >
-
-
-        <label>
-            Testers
-        </label>
-
-        <div class="count-row">
-
-            <div class="count-label">
-                Quick Count
-            </div>
-
-            <div class="count-controls">
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('tester', -1)"
-                >
-                    −
-                </button>
-
-                <div
-                    id="quickTesterValue"
-                    class="count-value"
-                >
-                    0
-                </div>
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('tester', 1)"
-                >
-                    +
-                </button>
-
-            </div>
-
-        </div>
-
-        <input
-            id="updateTester"
-            type="number"
-            min="0"
-            placeholder="Testers"
-        >
-
-
-        <label>
-            Samples
-        </label>
-
-        <div class="count-row">
-
-            <div class="count-label">
-                Quick Count
-            </div>
-
-            <div class="count-controls">
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('samples', -1)"
-                >
-                    −
-                </button>
-
-                <div
-                    id="quickSamplesValue"
-                    class="count-value"
-                >
-                    0
-                </div>
-
-                <button
-                    class="count-button"
-                    onclick="changeCount('samples', 1)"
-                >
-                    +
-                </button>
-
-            </div>
-
-        </div>
-
-        <input
-            id="updateSamples"
-            type="number"
-            min="0"
-            placeholder="Samples"
-        >
-
-
-        <button onclick="saveUpdate()">
-            Save Changes
-        </button>
-
-        <button onclick="showHistory()">
-            View Count History
-        </button>
-
-        <button
-            class="danger-button"
-            onclick="deleteProduct()"
-        >
-            Delete Product
-        </button>
-
-        <button
-            class="secondary-button"
-            onclick="closeUpdate()"
-        >
-            Cancel
-        </button>
-
-    </div>
-
-
-    <!-- HISTORY -->
-
-    <div
-        id="historyPanel"
-        style="display:none;"
+    <input
+        id="newTester"
+        type="number"
+        min="0"
+        placeholder="Testers"
     >
 
-        <h2 class="section-title">
-            Count History
-        </h2>
 
-        <div id="historyList"></div>
+    <input
+        id="newSamples"
+        type="number"
+        min="0"
+        placeholder="Samples"
+    >
 
-        <button
-            class="close-history"
-            onclick="closeHistory()"
-        >
-            Close History
-        </button>
 
-    </div>
+    <button onclick="saveNewProduct()">
+        Save Product
+    </button>
+
+
+    <button
+        class="secondary-button"
+        onclick="closeAddProduct()"
+    >
+        Cancel
+    </button>
+
+</div>
+
 
 </div>
 
 
 <script>
 
-var currentProduct = null;
+
+/* ==================================================
+   APP VARIABLES
+================================================== */
+
+var currentProductId = null;
 
 var currentCategory = "All";
 
@@ -649,11 +508,9 @@ var barcodeAlreadyFound = false;
 var pendingScannedBarcode = "";
 
 
-/*
-==================================================
-DEFAULT PRODUCTS
-==================================================
-*/
+/* ==================================================
+   DEFAULT PRODUCTS
+================================================== */
 
 var defaultProducts = [
 
@@ -696,11 +553,9 @@ var defaultProducts = [
 ];
 
 
-/*
-==================================================
-GET PRODUCTS
-==================================================
-*/
+/* ==================================================
+   GET PRODUCTS
+================================================== */
 
 function getProducts() {
 
@@ -708,6 +563,7 @@ function getProducts() {
         JSON.parse(
             localStorage.getItem("inventoryProducts")
         );
+
 
     if (!savedProducts) {
 
@@ -720,14 +576,12 @@ function getProducts() {
 
     }
 
-    /*
-    Upgrade older products that don't yet have
-    lastChecked or history.
-    */
 
     var changed = false;
 
+
     savedProducts.forEach(function(product) {
+
 
         if (!product.id) {
 
@@ -737,11 +591,12 @@ function getProducts() {
                 "-" +
                 Math.random()
                     .toString(36)
-                    .substring(2, 8);
+                    .substring(2,8);
 
             changed = true;
 
         }
+
 
         if (!product.hasOwnProperty("lastChecked")) {
 
@@ -750,6 +605,7 @@ function getProducts() {
             changed = true;
 
         }
+
 
         if (!Array.isArray(product.history)) {
 
@@ -777,11 +633,9 @@ function getProducts() {
 }
 
 
-/*
-==================================================
-SAVE PRODUCTS
-==================================================
-*/
+/* ==================================================
+   SAVE PRODUCTS
+================================================== */
 
 function saveProducts(products) {
 
@@ -793,11 +647,9 @@ function saveProducts(products) {
 }
 
 
-/*
-==================================================
-FORMAT DATE
-==================================================
-*/
+/* ==================================================
+   FORMAT DATE
+================================================== */
 
 function formatDate(dateString) {
 
@@ -805,37 +657,70 @@ function formatDate(dateString) {
         return "Never";
     }
 
+
     var date = new Date(dateString);
+
 
     if (isNaN(date.getTime())) {
         return "Never";
     }
 
+
     return date.toLocaleString([], {
+
         month: "short",
+
         day: "numeric",
+
         year: "numeric",
+
         hour: "numeric",
+
         minute: "2-digit"
+
     });
 
 }
 
 
-/*
-==================================================
-RENDER PRODUCTS
-==================================================
-*/
+/* ==================================================
+   ESCAPE HTML
+================================================== */
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ==================================================
+   RENDER PRODUCTS
+================================================== */
 
 function renderProducts() {
 
     var productList =
-        document.getElementById("productList");
+        document.getElementById(
+            "productList"
+        );
+
 
     productList.innerHTML = "";
 
+
     var products = getProducts();
+
 
     var searchText =
         document
@@ -850,10 +735,12 @@ function renderProducts() {
 
     products.forEach(function(product) {
 
+
         var nameMatches =
             product.name
                 .toLowerCase()
                 .includes(searchText);
+
 
         var categoryMatches =
             currentCategory === "All" ||
@@ -871,7 +758,10 @@ function renderProducts() {
         var productDiv =
             document.createElement("div");
 
-        productDiv.className = "product";
+
+        productDiv.className =
+            "product";
+
 
         productDiv.setAttribute(
             "data-id",
@@ -885,124 +775,44 @@ function renderProducts() {
                 : "None";
 
 
+        /*
+        Main product information.
+        */
+
         productDiv.innerHTML =
 
             "<h3>" +
             escapeHtml(product.name) +
             "</h3>" +
 
+
             "<p class='small'>" +
             escapeHtml(product.category) +
             "</p>" +
+
 
             "<p class='barcode-text'>" +
             "Barcode: " +
             escapeHtml(barcodeText) +
             "</p>" +
 
-            "<div class='count-row'>" +
 
-                "<div class='count-label'>" +
-                    "Live Stock" +
-                "</div>" +
-
-                "<div class='count-controls'>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"stock\", -1)' " +
-                    ">" +
-                        "−" +
-                    "</button>" +
-
-                    "<div class='count-value'>" +
-                        product.stock +
-                    "</div>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"stock\", 1)' " +
-                    ">" +
-                        "+" +
-                    "</button>" +
-
-                "</div>" +
-
-            "</div>" +
+            "<p class='product-count'>" +
+            "<strong>Live Stock:</strong> " +
+            escapeHtml(product.stock) +
+            "</p>" +
 
 
-            "<div class='count-row'>" +
-
-                "<div class='count-label'>" +
-                    "Testers" +
-                "</div>" +
-
-                "<div class='count-controls'>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"tester\", -1)' " +
-                    ">" +
-                        "−" +
-                    "</button>" +
-
-                    "<div class='count-value'>" +
-                        product.tester +
-                    "</div>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"tester\", 1)' " +
-                    ">" +
-                        "+" +
-                    "</button>" +
-
-                "</div>" +
-
-            "</div>" +
+            "<p class='product-count'>" +
+            "<strong>Testers:</strong> " +
+            escapeHtml(product.tester) +
+            "</p>" +
 
 
-            "<div class='count-row'>" +
-
-                "<div class='count-label'>" +
-                    "Samples" +
-                "</div>" +
-
-                "<div class='count-controls'>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"samples\", -1)' " +
-                    ">" +
-                        "−" +
-                    "</button>" +
-
-                    "<div class='count-value'>" +
-                        product.samples +
-                    "</div>" +
-
-                    "<button " +
-                        "class='count-button' " +
-                        "onclick='quickChange(\"" +
-                        product.id +
-                        "\", \"samples\", 1)' " +
-                    ">" +
-                        "+" +
-                    "</button>" +
-
-                "</div>" +
-
-            "</div>" +
+            "<p class='product-count'>" +
+            "<strong>Samples:</strong> " +
+            escapeHtml(product.samples) +
+            "</p>" +
 
 
             "<p class='small'>" +
@@ -1012,15 +822,254 @@ function renderProducts() {
 
 
             "<button " +
-                "class='product-update-button' " +
-                "onclick='openUpdateById(\"" +
+            "class='product-update-button' " +
+            "onclick='toggleUpdate(\"" +
+            product.id +
+            "\")'>" +
+            "Update Count" +
+            "</button>" +
+
+
+            /*
+            Inline update area.
+            */
+
+            "<div " +
+            "id='update-" +
+            product.id +
+            "' " +
+            "class='inline-update'>" +
+
+
+                "<h4>Update Count</h4>" +
+
+
+                /*
+                LIVE STOCK
+                */
+
+                "<div class='count-row'>" +
+
+                    "<div class='count-label'>" +
+                        "Live Stock" +
+                    "</div>" +
+
+                    "<div class='count-controls'>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"stock\", -1)'>" +
+                        "−" +
+                        "</button>" +
+
+                        "<div " +
+                        "id='inline-stock-" +
+                        product.id +
+                        "' " +
+                        "class='count-value'>" +
+                        escapeHtml(product.stock) +
+                        "</div>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"stock\", 1)'>" +
+                        "+" +
+                        "</button>" +
+
+                    "</div>" +
+
+                "</div>" +
+
+
+                /*
+                TESTERS
+                */
+
+                "<div class='count-row'>" +
+
+                    "<div class='count-label'>" +
+                        "Testers" +
+                    "</div>" +
+
+                    "<div class='count-controls'>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"tester\", -1)'>" +
+                        "−" +
+                        "</button>" +
+
+                        "<div " +
+                        "id='inline-tester-" +
+                        product.id +
+                        "' " +
+                        "class='count-value'>" +
+                        escapeHtml(product.tester) +
+                        "</div>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"tester\", 1)'>" +
+                        "+" +
+                        "</button>" +
+
+                    "</div>" +
+
+                "</div>" +
+
+
+                /*
+                SAMPLES
+                */
+
+                "<div class='count-row'>" +
+
+                    "<div class='count-label'>" +
+                        "Samples" +
+                    "</div>" +
+
+                    "<div class='count-controls'>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"samples\", -1)'>" +
+                        "−" +
+                        "</button>" +
+
+                        "<div " +
+                        "id='inline-samples-" +
+                        product.id +
+                        "' " +
+                        "class='count-value'>" +
+                        escapeHtml(product.samples) +
+                        "</div>" +
+
+                        "<button " +
+                        "class='count-button' " +
+                        "onclick='changeInlineCount(\"" +
+                        product.id +
+                        "\", \"samples\", 1)'>" +
+                        "+" +
+                        "</button>" +
+
+                    "</div>" +
+
+                "</div>" +
+
+
+                /*
+                SAVE
+                */
+
+                "<button " +
+                "onclick='saveInlineUpdate(\"" +
                 product.id +
                 "\")'>" +
-                "Update Count" +
-            "</button>";
+                "Save Changes" +
+                "</button>" +
 
 
-        productList.appendChild(productDiv);
+                /*
+                HISTORY
+                */
+
+                "<button " +
+                "class='secondary-button' " +
+                "onclick='toggleHistory(\"" +
+                product.id +
+                "\")'>" +
+                "View Count History" +
+                "</button>" +
+
+
+                /*
+                DELETE
+                */
+
+                "<button " +
+                "class='danger-button' " +
+                "onclick='deleteProduct(\"" +
+                product.id +
+                "\")'>" +
+                "Delete Product" +
+                "</button>" +
+
+
+                /*
+                CANCEL
+                */
+
+                "<button " +
+                "class='secondary-button' " +
+                "onclick='closeInlineUpdate(\"" +
+                product.id +
+                "\")'>" +
+                "Cancel" +
+                "</button>" +
+
+
+                /*
+                HISTORY PANEL
+                */
+
+                "<div " +
+                "id='history-" +
+                product.id +
+                "' " +
+                "class='history-panel'>" +
+
+                    "<div " +
+                    "id='history-list-" +
+                    product.id +
+                    "'>" +
+                    "</div>" +
+
+                "</div>" +
+
+
+            "</div>";
+
+
+        productList.appendChild(
+            productDiv
+        );
+
+
+        /*
+        If this product was already open,
+        keep it open after rendering.
+        */
+
+        if (
+            currentProductId ===
+            product.id
+        ) {
+
+            var updateArea =
+                document.getElementById(
+                    "update-" +
+                    product.id
+                );
+
+
+            if (updateArea) {
+
+                updateArea.style.display =
+                    "block";
+
+            }
+
+        }
 
     });
 
@@ -1028,8 +1077,11 @@ function renderProducts() {
     if (visibleCount === 0) {
 
         productList.innerHTML =
+
             "<div class='product'>" +
+
             "<p>No products found.</p>" +
+
             "</div>";
 
     }
@@ -1037,47 +1089,36 @@ function renderProducts() {
 }
 
 
-/*
-==================================================
-ESCAPE HTML
-==================================================
-*/
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-/*
-==================================================
-SEARCH
-==================================================
-*/
+/* ==================================================
+   SEARCH
+================================================== */
 
 document
     .getElementById("searchInput")
     .addEventListener(
         "input",
         function() {
+
+            /*
+            If the search changes, close any
+            currently open update panel.
+            */
+
+            currentProductId = null;
+
             renderProducts();
+
         }
     );
 
 
-/*
-==================================================
-CATEGORY FILTER
-==================================================
-*/
+/* ==================================================
+   CATEGORY FILTER
+================================================== */
 
 function filterProducts(category) {
+
+    currentProductId = null;
 
     currentCategory = category;
 
@@ -1086,11 +1127,9 @@ function filterProducts(category) {
 }
 
 
-/*
-==================================================
-ADD PRODUCT
-==================================================
-*/
+/* ==================================================
+   SHOW ADD PRODUCT
+================================================== */
 
 function showAddProduct() {
 
@@ -1109,6 +1148,10 @@ function closeAddProduct() {
 
 }
 
+
+/* ==================================================
+   SAVE NEW PRODUCT
+================================================== */
 
 function saveNewProduct() {
 
@@ -1138,17 +1181,20 @@ function saveNewProduct() {
         stock:
             document
                 .getElementById("newStock")
-                .value || "0",
+                .value ||
+            "0",
 
         tester:
             document
                 .getElementById("newTester")
-                .value || "0",
+                .value ||
+            "0",
 
         samples:
             document
                 .getElementById("newSamples")
-                .value || "0",
+                .value ||
+            "0",
 
         lastChecked:
             new Date().toISOString(),
@@ -1169,11 +1215,12 @@ function saveNewProduct() {
     }
 
 
-    var products = getProducts();
+    var products =
+        getProducts();
 
 
     /*
-    Check duplicate barcode.
+    DUPLICATE BARCODE CHECK
     */
 
     if (product.barcode !== "") {
@@ -1209,26 +1256,32 @@ function saveNewProduct() {
 
     products.push(product);
 
+
     saveProducts(products);
+
 
     closeAddProduct();
 
+
     clearAddProductForm();
+
 
     pendingScannedBarcode = "";
 
+
     renderProducts();
 
-    alert("Product added!");
+
+    alert(
+        "Product added!"
+    );
 
 }
 
 
-/*
-==================================================
-CLEAR ADD PRODUCT FORM
-==================================================
-*/
+/* ==================================================
+   CLEAR ADD PRODUCT FORM
+================================================== */
 
 function clearAddProductForm() {
 
@@ -1236,17 +1289,21 @@ function clearAddProductForm() {
         .getElementById("newName")
         .value = "";
 
+
     document
         .getElementById("newBarcode")
         .value = "";
+
 
     document
         .getElementById("newStock")
         .value = "";
 
+
     document
         .getElementById("newTester")
         .value = "";
+
 
     document
         .getElementById("newSamples")
@@ -1255,20 +1312,89 @@ function clearAddProductForm() {
 }
 
 
-/*
-==================================================
-OPEN UPDATE BY ID
-==================================================
-*/
+/* ==================================================
+   TOGGLE INLINE UPDATE
+================================================== */
 
-function openUpdateById(productId) {
+function toggleUpdate(productId) {
 
-    var products = getProducts();
+    /*
+    If the same product is already open,
+    close it.
+    */
+
+    if (currentProductId === productId) {
+
+        closeInlineUpdate(productId);
+
+        return;
+
+    }
+
+
+    /*
+    Only one product can be open at a time.
+    */
+
+    currentProductId = productId;
+
+
+    renderProducts();
+
+
+    /*
+    IMPORTANT:
+    No scrolling happens here.
+    */
+
+}
+
+
+/* ==================================================
+   CLOSE INLINE UPDATE
+================================================== */
+
+function closeInlineUpdate(productId) {
+
+    if (currentProductId === productId) {
+
+        currentProductId = null;
+
+    }
+
+
+    renderProducts();
+
+}
+
+
+/* ==================================================
+   CHANGE INLINE COUNT
+================================================== */
+
+function changeInlineCount(
+    productId,
+    field,
+    amount
+) {
+
+    /*
+    Get current product.
+    */
+
+    var products =
+        getProducts();
+
 
     var product =
         products.find(
             function(item) {
-                return item.id === productId;
+
+                return (
+                    item.id ===
+                    productId
+                );
+
             }
         );
 
@@ -1284,166 +1410,78 @@ function openUpdateById(productId) {
     }
 
 
-    currentProduct = product;
+    /*
+    Read the temporary count stored
+    in the inline panel.
+    */
+
+    var valueElement =
+        document.getElementById(
+            "inline-" +
+            field +
+            "-" +
+            productId
+        );
 
 
-    document
-        .getElementById("updateProductName")
-        .textContent =
-            product.name +
-            " • " +
-            product.category;
-
-
-    document
-        .getElementById("updateStock")
-        .value =
-            product.stock;
-
-
-    document
-        .getElementById("updateTester")
-        .value =
-            product.tester;
-
-
-    document
-        .getElementById("updateSamples")
-        .value =
-            product.samples;
-
-
-    updateQuickValues();
-
-
-    document
-        .getElementById("updateForm")
-        .style.display = "block";
-
-
-    document
-        .getElementById("historyPanel")
-        .style.display = "none";
-
-}
-
-
-/*
-==================================================
-QUICK COUNT VALUES
-==================================================
-*/
-
-function updateQuickValues() {
-
-    if (!currentProduct) {
+    if (!valueElement) {
         return;
     }
-
-
-    document
-        .getElementById("quickStockValue")
-        .textContent =
-            document
-                .getElementById("updateStock")
-                .value || "0";
-
-
-    document
-        .getElementById("quickTesterValue")
-        .textContent =
-            document
-                .getElementById("updateTester")
-                .value || "0";
-
-
-    document
-        .getElementById("quickSamplesValue")
-        .textContent =
-            document
-                .getElementById("updateSamples")
-                .value || "0";
-
-}
-
-
-/*
-==================================================
-QUICK + / - INSIDE UPDATE SCREEN
-==================================================
-*/
-
-function changeCount(field, amount) {
-
-    if (!currentProduct) {
-        return;
-    }
-
-
-    var inputId;
-
-
-    if (field === "stock") {
-        inputId = "updateStock";
-    }
-
-    if (field === "tester") {
-        inputId = "updateTester";
-    }
-
-    if (field === "samples") {
-        inputId = "updateSamples";
-    }
-
-
-    var input =
-        document.getElementById(inputId);
 
 
     var currentValue =
-        parseInt(input.value, 10);
+        parseInt(
+            valueElement.textContent,
+            10
+        );
 
 
     if (isNaN(currentValue)) {
+
         currentValue = 0;
+
     }
 
 
     var newValue =
-        currentValue + amount;
+        currentValue +
+        amount;
 
 
     if (newValue < 0) {
+
         newValue = 0;
+
     }
 
 
-    input.value = newValue;
-
-    updateQuickValues();
+    valueElement.textContent =
+        newValue;
 
 }
 
 
-/*
-==================================================
-QUICK COUNT DIRECTLY FROM PRODUCT CARD
-==================================================
-*/
+/* ==================================================
+   SAVE INLINE UPDATE
+================================================== */
 
-function quickChange(
-    productId,
-    field,
-    amount
+function saveInlineUpdate(
+    productId
 ) {
 
-    var products = getProducts();
+    var products =
+        getProducts();
 
 
     var index =
         products.findIndex(
             function(product) {
-                return product.id === productId;
+
+                return (
+                    product.id ===
+                    productId
+                );
+
             }
         );
 
@@ -1459,192 +1497,68 @@ function quickChange(
     }
 
 
-    var product = products[index];
-
-
-    var oldValue =
-        parseInt(product[field], 10);
-
-
-    if (isNaN(oldValue)) {
-        oldValue = 0;
-    }
-
-
-    var newValue =
-        oldValue + amount;
-
-
-    if (newValue < 0) {
-        newValue = 0;
-    }
+    var product =
+        products[index];
 
 
     /*
-    Nothing to do if user presses minus
-    when count is already zero.
+    Read the temporary values.
     */
 
-    if (newValue === oldValue) {
-        return;
-    }
+    var stockElement =
+        document.getElementById(
+            "inline-stock-" +
+            productId
+        );
 
 
-    product[field] =
-        String(newValue);
+    var testerElement =
+        document.getElementById(
+            "inline-tester-" +
+            productId
+        );
 
 
-    var now =
-        new Date().toISOString();
+    var samplesElement =
+        document.getElementById(
+            "inline-samples-" +
+            productId
+        );
 
-
-    product.lastChecked = now;
-
-
-    if (!Array.isArray(product.history)) {
-        product.history = [];
-    }
-
-
-    product.history.unshift({
-
-        date: now,
-
-        type: "Quick Count",
-
-        field: field,
-
-        oldValue: String(oldValue),
-
-        newValue: String(newValue),
-
-        change:
-            amount > 0
-                ? "+" + amount
-                : String(amount)
-
-    });
-
-
-    /*
-    Keep history from becoming enormous.
-    */
-
-    if (product.history.length > 100) {
-
-        product.history =
-            product.history.slice(0, 100);
-
-    }
-
-
-    saveProducts(products);
-
-    renderProducts();
-
-
-    /*
-    If this product is currently open in the
-    Update Count screen, keep it synchronized.
-    */
 
     if (
-        currentProduct &&
-        currentProduct.id === productId
+        !stockElement ||
+        !testerElement ||
+        !samplesElement
     ) {
 
-        currentProduct = product;
-
-        document
-            .getElementById("updateStock")
-            .value =
-                product.stock;
-
-        document
-            .getElementById("updateTester")
-            .value =
-                product.tester;
-
-        document
-            .getElementById("updateSamples")
-            .value =
-                product.samples;
-
-        updateQuickValues();
-
-    }
-
-}
-
-
-/*
-==================================================
-SAVE UPDATE
-==================================================
-*/
-
-function saveUpdate() {
-
-    if (!currentProduct) {
         return;
+
     }
 
 
     var newStock =
-        document
-            .getElementById("updateStock")
-            .value || "0";
+        stockElement.textContent;
 
 
     var newTester =
-        document
-            .getElementById("updateTester")
-            .value || "0";
+        testerElement.textContent;
 
 
     var newSamples =
-        document
-            .getElementById("updateSamples")
-            .value || "0";
+        samplesElement.textContent;
 
-
-    var products = getProducts();
-
-
-    var index =
-        products.findIndex(
-            function(product) {
-                return (
-                    product.id ===
-                    currentProduct.id
-                );
-            }
-        );
-
-
-    if (index === -1) {
-
-        alert(
-            "Product could not be found."
-        );
-
-        return;
-
-    }
-
-
-    var product = products[index];
 
     var now =
         new Date().toISOString();
 
 
-    /*
-    Record changes.
-    */
-
     var changes = [];
 
+
+    /*
+    CHECK LIVE STOCK
+    */
 
     if (
         String(product.stock) !==
@@ -1652,13 +1566,23 @@ function saveUpdate() {
     ) {
 
         changes.push({
+
             field: "Live Stock",
-            oldValue: product.stock,
-            newValue: newStock
+
+            oldValue:
+                product.stock,
+
+            newValue:
+                newStock
+
         });
 
     }
 
+
+    /*
+    CHECK TESTERS
+    */
 
     if (
         String(product.tester) !==
@@ -1666,13 +1590,23 @@ function saveUpdate() {
     ) {
 
         changes.push({
+
             field: "Testers",
-            oldValue: product.tester,
-            newValue: newTester
+
+            oldValue:
+                product.tester,
+
+            newValue:
+                newTester
+
         });
 
     }
 
+
+    /*
+    CHECK SAMPLES
+    */
 
     if (
         String(product.samples) !==
@@ -1680,37 +1614,54 @@ function saveUpdate() {
     ) {
 
         changes.push({
+
             field: "Samples",
-            oldValue: product.samples,
-            newValue: newSamples
+
+            oldValue:
+                product.samples,
+
+            newValue:
+                newSamples
+
         });
 
     }
 
 
     /*
-    Save the new counts.
+    SAVE NEW VALUES
     */
 
-    product.stock = newStock;
+    product.stock =
+        newStock;
 
-    product.tester = newTester;
 
-    product.samples = newSamples;
+    product.tester =
+        newTester;
+
+
+    product.samples =
+        newSamples;
 
 
     /*
-    Only change the last-checked time if
-    something actually changed.
+    RECORD HISTORY
     */
 
     if (changes.length > 0) {
 
-        product.lastChecked = now;
+        product.lastChecked =
+            now;
 
 
-        if (!Array.isArray(product.history)) {
+        if (
+            !Array.isArray(
+                product.history
+            )
+        ) {
+
             product.history = [];
+
         }
 
 
@@ -1722,6 +1673,7 @@ function saveUpdate() {
                         change.oldValue,
                         10
                     );
+
 
                 var newNumber =
                     parseInt(
@@ -1743,9 +1695,11 @@ function saveUpdate() {
 
                 product.history.unshift({
 
-                    date: now,
+                    date:
+                        now,
 
-                    type: "Manual Update",
+                    type:
+                        "Count Update",
 
                     field:
                         change.field,
@@ -1769,10 +1723,20 @@ function saveUpdate() {
         );
 
 
-        if (product.history.length > 100) {
+        /*
+        Keep maximum 100 history entries.
+        */
+
+        if (
+            product.history.length >
+            100
+        ) {
 
             product.history =
-                product.history.slice(0, 100);
+                product.history.slice(
+                    0,
+                    100
+                );
 
         }
 
@@ -1782,65 +1746,112 @@ function saveUpdate() {
     saveProducts(products);
 
 
-    currentProduct = product;
+    /*
+    Keep this product open after saving.
+    */
+
+    currentProductId =
+        productId;
 
 
     renderProducts();
 
 
-    alert(
-        changes.length > 0
-            ? "Count updated!"
-            : "No changes were made."
-    );
+    /*
+    Re-open the inline area because
+    renderProducts rebuilds the cards.
+    */
+
+    var updateArea =
+        document.getElementById(
+            "update-" +
+            productId
+        );
+
+
+    if (updateArea) {
+
+        updateArea.style.display =
+            "block";
+
+    }
+
+
+    if (changes.length > 0) {
+
+        alert(
+            "Count updated!"
+        );
+
+    }
+    else {
+
+        alert(
+            "No changes were made."
+        );
+
+    }
 
 }
 
 
-/*
-==================================================
-COUNT HISTORY
-==================================================
-*/
+/* ==================================================
+   TOGGLE HISTORY
+================================================== */
 
-function showHistory() {
+function toggleHistory(productId) {
 
-    if (!currentProduct) {
+    var historyPanel =
+        document.getElementById(
+            "history-" +
+            productId
+        );
+
+
+    if (!historyPanel) {
         return;
     }
 
 
-    var products = getProducts();
+    if (
+        historyPanel.style.display ===
+        "block"
+    ) {
+
+        historyPanel.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    var products =
+        getProducts();
 
 
     var product =
         products.find(
             function(item) {
+
                 return (
                     item.id ===
-                    currentProduct.id
+                    productId
                 );
+
             }
         );
 
 
     if (!product) {
-
-        alert(
-            "Product could not be found."
-        );
-
         return;
-
     }
-
-
-    currentProduct = product;
 
 
     var historyList =
         document.getElementById(
-            "historyList"
+            "history-list-" +
+            productId
         );
 
 
@@ -1853,8 +1864,11 @@ function showHistory() {
     ) {
 
         historyList.innerHTML =
+
             "<p class='empty-history'>" +
+
             "No count history yet." +
+
             "</p>";
 
     }
@@ -1882,36 +1896,51 @@ function showHistory() {
                 entryDiv.innerHTML =
 
                     "<div class='history-date'>" +
+
                     escapeHtml(
                         formatDate(
                             entry.date
                         )
                     ) +
+
                     "</div>" +
 
+
                     "<div class='history-change'>" +
+
                     escapeHtml(
                         entry.field
                     ) +
+
                     " " +
+
                     escapeHtml(
                         actionText
                     ) +
+
                     " (" +
+
                     escapeHtml(
                         entry.oldValue
                     ) +
+
                     " → " +
+
                     escapeHtml(
                         entry.newValue
                     ) +
+
                     ")" +
+
                     "</div>" +
 
+
                     "<div class='small'>" +
+
                     escapeHtml(
                         entry.type
                     ) +
+
                     "</div>";
 
 
@@ -1925,34 +1954,39 @@ function showHistory() {
     }
 
 
-    document
-        .getElementById("historyPanel")
-        .style.display = "block";
+    historyPanel.style.display =
+        "block";
 
 }
 
 
-function closeHistory() {
+/* ==================================================
+   DELETE PRODUCT
+================================================== */
 
-    document
-        .getElementById("historyPanel")
-        .style.display = "none";
+function deleteProduct(productId) {
 
-}
+    var products =
+        getProducts();
 
 
-/*
-==================================================
-DELETE PRODUCT
-==================================================
-*/
+    var product =
+        products.find(
+            function(item) {
 
-function deleteProduct() {
+                return (
+                    item.id ===
+                    productId
+                );
 
-    if (!currentProduct) {
+            }
+        );
+
+
+    if (!product) {
 
         alert(
-            "No product selected."
+            "Product could not be found."
         );
 
         return;
@@ -1960,14 +1994,10 @@ function deleteProduct() {
     }
 
 
-    var productName =
-        currentProduct.name;
-
-
     var confirmed =
         confirm(
             "Are you sure you want to delete " +
-            productName +
+            product.name +
             "?"
         );
 
@@ -1977,16 +2007,13 @@ function deleteProduct() {
     }
 
 
-    var products = getProducts();
-
-
     products =
         products.filter(
-            function(product) {
+            function(item) {
 
                 return (
-                    product.id !==
-                    currentProduct.id
+                    item.id !==
+                    productId
                 );
 
             }
@@ -1996,12 +2023,15 @@ function deleteProduct() {
     saveProducts(products);
 
 
-    currentProduct = null;
+    if (
+        currentProductId ===
+        productId
+    ) {
 
+        currentProductId = null;
 
-    closeUpdate();
+    }
 
-    closeHistory();
 
     renderProducts();
 
@@ -2013,34 +2043,9 @@ function deleteProduct() {
 }
 
 
-/*
-==================================================
-CLOSE UPDATE
-==================================================
-*/
-
-function closeUpdate() {
-
-    document
-        .getElementById("updateForm")
-        .style.display = "none";
-
-
-    document
-        .getElementById("historyPanel")
-        .style.display = "none";
-
-
-    currentProduct = null;
-
-}
-
-
-/*
-==================================================
-BARCODE SCANNER
-==================================================
-*/
+/* ==================================================
+   BARCODE SCANNER
+================================================== */
 
 function scanBarcode() {
 
@@ -2063,14 +2068,16 @@ function scanBarcode() {
     }
 
 
-    barcodeAlreadyFound = false;
+    barcodeAlreadyFound =
+        false;
 
 
     document
         .getElementById(
             "scannerContainer"
         )
-        .style.display = "block";
+        .style.display =
+        "block";
 
 
     document
@@ -2078,16 +2085,21 @@ function scanBarcode() {
             "scannerStatus"
         )
         .textContent =
-            "Starting camera...";
+        "Starting camera...";
 
 
     document
-        .getElementById("reader")
-        .innerHTML = "";
+        .getElementById(
+            "reader"
+        )
+        .innerHTML =
+        "";
 
 
     barcodeScanner =
-        new Html5Qrcode("reader");
+        new Html5Qrcode(
+            "reader"
+        );
 
 
     var formats = [
@@ -2136,8 +2148,11 @@ function scanBarcode() {
 
 
                 return {
+
                     width: width,
+
                     height: height
+
                 };
 
             },
@@ -2149,8 +2164,10 @@ function scanBarcode() {
             formats,
 
         experimentalFeatures: {
+
             useBarCodeDetectorIfSupported:
                 true
+
         }
 
     };
@@ -2182,6 +2199,7 @@ function scanBarcode() {
 
         )
 
+
         .then(
             function() {
 
@@ -2194,10 +2212,11 @@ function scanBarcode() {
                         "scannerStatus"
                     )
                     .textContent =
-                        "Move the barcode into the box. Keep it flat and well lit.";
+                    "Move the barcode into the box. Keep it flat and well lit.";
 
             }
         )
+
 
         .catch(
             function(error) {
@@ -2213,7 +2232,7 @@ function scanBarcode() {
                         "scannerStatus"
                     )
                     .textContent =
-                        "Camera could not start.";
+                    "Camera could not start.";
 
 
                 alert(
@@ -2229,11 +2248,9 @@ function scanBarcode() {
 }
 
 
-/*
-==================================================
-BARCODE FOUND
-==================================================
-*/
+/* ==================================================
+   BARCODE FOUND
+================================================== */
 
 function onBarcodeScanned(
     decodedText
@@ -2249,11 +2266,14 @@ function onBarcodeScanned(
     }
 
 
-    barcodeAlreadyFound = true;
+    barcodeAlreadyFound =
+        true;
 
 
     var scannedBarcode =
-        String(decodedText).trim();
+        String(
+            decodedText
+        ).trim();
 
 
     document
@@ -2261,8 +2281,8 @@ function onBarcodeScanned(
             "scannerStatus"
         )
         .textContent =
-            "Barcode found: " +
-            scannedBarcode;
+        "Barcode found: " +
+        scannedBarcode;
 
 
     stopBarcodeScanner()
@@ -2279,11 +2299,9 @@ function onBarcodeScanned(
 }
 
 
-/*
-==================================================
-HANDLE SCANNED BARCODE
-==================================================
-*/
+/* ==================================================
+   HANDLE SCANNED BARCODE
+================================================== */
 
 function handleScannedBarcode(
     scannedBarcode
@@ -2298,38 +2316,50 @@ function handleScannedBarcode(
             function(product) {
 
                 return (
+
                     product.barcode &&
+
                     String(
                         product.barcode
                     ).trim() ===
                     scannedBarcode
+
                 );
 
             }
         );
 
 
+    /*
+    EXISTING PRODUCT
+    */
+
     if (existingProduct) {
 
         closeBarcodeScanner();
 
 
-        currentCategory = "All";
+        currentCategory =
+            "All";
 
 
         document
             .getElementById(
                 "searchInput"
             )
-            .value = "";
+            .value =
+            "";
+
+
+        /*
+        Set the selected product.
+        */
+
+        currentProductId =
+            existingProduct.id;
 
 
         renderProducts();
-
-
-        openUpdateById(
-            existingProduct.id
-        );
 
 
         alert(
@@ -2344,7 +2374,7 @@ function handleScannedBarcode(
 
 
     /*
-    New barcode.
+    NEW PRODUCT
     */
 
     pendingScannedBarcode =
@@ -2359,7 +2389,7 @@ function handleScannedBarcode(
             "newBarcodeNumber"
         )
         .textContent =
-            scannedBarcode;
+        scannedBarcode;
 
 
     document
@@ -2367,16 +2397,14 @@ function handleScannedBarcode(
             "newBarcodePrompt"
         )
         .style.display =
-            "block";
+        "block";
 
 }
 
 
-/*
-==================================================
-ADD SCANNED PRODUCT
-==================================================
-*/
+/* ==================================================
+   ADD SCANNED PRODUCT
+================================================== */
 
 function addScannedProduct() {
 
@@ -2390,7 +2418,7 @@ function addScannedProduct() {
             "newBarcodePrompt"
         )
         .style.display =
-            "none";
+        "none";
 
 
     showAddProduct();
@@ -2401,7 +2429,7 @@ function addScannedProduct() {
             "newBarcode"
         )
         .value =
-            pendingScannedBarcode;
+        pendingScannedBarcode;
 
 
     document
@@ -2413,15 +2441,14 @@ function addScannedProduct() {
 }
 
 
-/*
-==================================================
-CANCEL SCANNED PRODUCT
-==================================================
-*/
+/* ==================================================
+   CANCEL SCANNED PRODUCT
+================================================== */
 
 function cancelScannedProduct() {
 
-    pendingScannedBarcode = "";
+    pendingScannedBarcode =
+        "";
 
 
     document
@@ -2429,16 +2456,14 @@ function cancelScannedProduct() {
             "newBarcodePrompt"
         )
         .style.display =
-            "none";
+        "none";
 
 }
 
 
-/*
-==================================================
-STOP BARCODE SCANNER
-==================================================
-*/
+/* ==================================================
+   STOP SCANNER
+================================================== */
 
 function stopBarcodeScanner() {
 
@@ -2474,7 +2499,8 @@ function stopBarcodeScanner() {
                             .getElementById(
                                 "reader"
                             )
-                            .innerHTML = "";
+                            .innerHTML =
+                            "";
 
 
                         resolve();
@@ -2494,6 +2520,7 @@ function stopBarcodeScanner() {
                         barcodeScannerRunning =
                             false;
 
+
                         barcodeScanner =
                             null;
 
@@ -2502,7 +2529,8 @@ function stopBarcodeScanner() {
                             .getElementById(
                                 "reader"
                             )
-                            .innerHTML = "";
+                            .innerHTML =
+                            "";
 
 
                         resolve();
@@ -2516,11 +2544,9 @@ function stopBarcodeScanner() {
 }
 
 
-/*
-==================================================
-CLOSE BARCODE SCANNER
-==================================================
-*/
+/* ==================================================
+   CLOSE SCANNER
+================================================== */
 
 function closeBarcodeScanner() {
 
@@ -2532,7 +2558,7 @@ function closeBarcodeScanner() {
             "scannerContainer"
         )
         .style.display =
-            "none";
+        "none";
 
 
     document
@@ -2540,27 +2566,20 @@ function closeBarcodeScanner() {
             "scannerStatus"
         )
         .textContent =
-            "Point your camera at a product barcode.";
+        "Point your camera at a product barcode.";
 
 }
 
 
-/*
-==================================================
-INITIALIZE APP
-==================================================
-*/
+/* ==================================================
+   INITIALIZE
+================================================== */
 
 window.addEventListener(
     "load",
     function() {
 
-        /*
-        Upgrade any older saved products.
-        */
-
         getProducts();
-
 
         renderProducts();
 
